@@ -70,7 +70,6 @@ html,body{
 .title-row .barcode i:nth-child(6){height:60%}
 .title-row .barcode i:nth-child(8){height:90%}
 
-/* Barre de titre iOS-like avec bouton retour */
 .top-nav{
   display:none;align-items:center;gap:10px;
   padding:6px 12px 8px;border-bottom:1px solid var(--cream-3);
@@ -218,7 +217,7 @@ html,body{
 
 .device-bottom{
   padding:10px 18px 18px;display:grid;
-  grid-template-columns:auto 1fr 1fr;gap:10px;background:var(--cream);
+  grid-template-columns:1fr 1fr 1fr;gap:8px;background:var(--cream);
 }
 .btn-phys{
   font-family:inherit;
@@ -245,11 +244,7 @@ html,body{
   background:linear-gradient(to bottom, #f4f2ec, #e2dfd7);
   width:52px;min-width:52px;padding:16px 8px;font-size:18px;
 }
-.btn-phys:disabled{opacity:.4}
-
-.run-controls{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:4px}
-.run-controls .btn-phys{padding:14px 8px;font-size:12px;min-height:48px}
-.run-controls .full{grid-column:span 3}
+.btn-phys.full{grid-column:span 3}
 
 .screen button.inline{
   background:transparent;border:1px solid var(--line);color:var(--amber);
@@ -495,7 +490,7 @@ var DEFAULT_SESSIONS = [
   }
 ];
 
-var STORE_KEY = 'chronophases:retro:v2';
+var STORE_KEY = 'chronophases:retro:v3';
 var sessions = loadSessions();
 
 function loadSessions(){
@@ -609,7 +604,6 @@ function setTop(title, sub, info){
 function setBottom(html){ bottomEl.innerHTML = html; }
 
 function showNav(opts){
-  // opts = { label, title, onBack, actionLabel, onAction }
   if (!opts){ navEl.classList.remove('on'); return; }
   navEl.classList.add('on');
   navBackLabelEl.textContent = opts.label || 'Retour';
@@ -681,16 +675,16 @@ function renderList(){
   }
 
   setBottom(
-      '<button class="btn-phys side" id="btn-add" title="nouvelle séance">＋</button>'
+      '<button class="btn-phys" id="btn-add" title="nouvelle séance">＋ NOUVELLE</button>'
+    + '<button class="btn-phys" id="btn-edit-first">ÉDITER</button>'
     + '<button class="btn-phys primary" id="btn-first">▶ DÉMARRER</button>'
-    + '<button class="btn-phys" id="btn-edit-first">EDIT</button>'
   );
   document.getElementById('btn-add').onclick = newSession;
-  document.getElementById('btn-first').onclick = function(){
-    if (sessions.length) startSession(sessions[0].id);
-  };
   document.getElementById('btn-edit-first').onclick = function(){
     if (sessions.length) editSession(sessions[0].id);
+  };
+  document.getElementById('btn-first').onclick = function(){
+    if (sessions.length) startSession(sessions[0].id);
   };
 }
 
@@ -875,8 +869,8 @@ function editSession(id){
   };
 
   setBottom(
-      '<button class="btn-phys side" id="btn-back">←</button>'
-    + '<button class="btn-phys" id="btn-cancel">ANNULER</button>'
+      '<button class="btn-phys" id="btn-cancel">ANNULER</button>'
+    + '<button class="btn-phys" id="btn-back">← RETOUR</button>'
     + '<button class="btn-phys primary" id="btn-save">✓ VALIDER</button>'
   );
   document.getElementById('btn-back').onclick = function(){ saveSessions(); renderList(); };
@@ -959,8 +953,8 @@ function editPhase(index){
   };
 
   setBottom(
-      '<button class="btn-phys side" id="btn-back">←</button>'
-    + '<button class="btn-phys" id="btn-cancel">ANNULER</button>'
+      '<button class="btn-phys" id="btn-cancel">ANNULER</button>'
+    + '<button class="btn-phys" id="btn-back">← RETOUR</button>'
     + '<button class="btn-phys primary" id="btn-save">✓ VALIDER</button>'
   );
   document.getElementById('btn-back').onclick = function(){ saveSessions(); editSession(editingId); };
@@ -994,7 +988,6 @@ function startSession(id){
 function renderRun(){
   var s = state.session;
   var p = s.phases[state.index];
-  var isPause = p.type === 'pause';
   var next = s.phases[state.index + 1];
 
   setTop(s.title, '// phase ' + (state.index+1) + '/' + s.phases.length, 'RUNNING');
@@ -1048,32 +1041,20 @@ function renderRun(){
   screenEl.innerHTML = html;
 
   setBottom(
-      '<button class="btn-phys side" id="b-minus">−1m</button>'
+      '<button class="btn-phys" id="b-minus">−1M</button>'
     + '<button class="btn-phys" id="b-pause">PAUSE</button>'
-    + '<button class="btn-phys primary" id="b-fs">⛶ SOBRE</button>'
-  );
-  var extra = document.createElement('div');
-  extra.className = 'run-controls';
-  extra.style.gridColumn = 'span 3';
-  extra.style.marginTop = '6px';
-  extra.innerHTML =
-      '<button class="btn-phys" id="b-minus2">−1m</button>'
-    + '<button class="btn-phys" id="b-pause2">PAUSE</button>'
-    + '<button class="btn-phys" id="b-plus">+1m</button>'
+    + '<button class="btn-phys" id="b-plus">+1M</button>'
     + '<button class="btn-phys full" id="b-skip">▸ PHASE SUIVANTE</button>'
     + '<button class="btn-phys full danger" id="b-stop">■ TERMINER LA SÉANCE</button>'
-    + '<button class="btn-phys full primary" id="b-fs2">⛶  MODE PLEIN ÉCRAN SOBRE</button>';
-  bottomEl.appendChild(extra);
+    + '<button class="btn-phys full primary" id="b-fs">⛶ MODE PLEIN ÉCRAN SOBRE</button>'
+  );
 
   document.getElementById('b-minus').onclick = function(){ adjust(-60); };
-  document.getElementById('b-minus2').onclick = function(){ adjust(-60); };
   document.getElementById('b-plus').onclick = function(){ adjust(60); };
   document.getElementById('b-pause').onclick = function(){ togglePause(); };
-  document.getElementById('b-pause2').onclick = function(){ togglePause(); };
   document.getElementById('b-skip').onclick = function(){ advance(true); };
   document.getElementById('b-stop').onclick = function(){ stopSession(false); };
   document.getElementById('b-fs').onclick = enterFullscreen;
-  document.getElementById('b-fs2').onclick = enterFullscreen;
 
   updateGlobalBar();
   updateDisplay();
@@ -1208,19 +1189,16 @@ function adjust(sec){
 function togglePause(){
   if (!state) return;
   var b1 = document.getElementById('b-pause');
-  var b2 = document.getElementById('b-pause2');
   if (state.running){
     state.running = false;
     state.remaining = Math.max(0, Math.round((state.phaseEndsAt - Date.now())/1000));
     clearInterval(tickHandle); releaseAwake();
     if (b1) b1.textContent = 'REPRENDRE';
-    if (b2) b2.textContent = 'REPRENDRE';
   } else {
     state.running = true;
     state.phaseEndsAt = Date.now() + state.remaining * 1000;
     startTicking(); keepAwake();
     if (b1) b1.textContent = 'PAUSE';
-    if (b2) b2.textContent = 'PAUSE';
   }
   if (fsActive) updateFs();
 }
@@ -1288,9 +1266,9 @@ function finishSession(){
     + '</div>';
 
   setBottom(
-      '<button class="btn-phys side" id="b-home">←</button>'
-    + '<button class="btn-phys" id="b-restart">RELANCER</button>'
-    + '<button class="btn-phys primary" id="b-list">RETOUR LISTE</button>'
+      '<button class="btn-phys" id="b-restart">RELANCER</button>'
+    + '<button class="btn-phys" id="b-home">← LISTE</button>'
+    + '<button class="btn-phys primary" id="b-list">RETOUR</button>'
   );
   document.getElementById('b-home').onclick = function(){ state = null; renderList(); };
   document.getElementById('b-list').onclick = function(){ state = null; renderList(); };
