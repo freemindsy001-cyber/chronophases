@@ -1,0 +1,1547 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ChronoPhases">
+<meta name="theme-color" content="#e8e6e0">
+<title>ChronoPhases</title>
+<style>
+:root{
+  --cream:#e8e6e0;
+  --cream-2:#dcd9d2;
+  --cream-3:#c9c5bc;
+  --ink:#1a1a1a;
+  --ink-2:#4a4a48;
+  --screen:#0a0a0a;
+  --screen-2:#111110;
+  --amber:#ff5b1f;
+  --amber-soft:#ff7a3d;
+  --amber-dim:#7a2a0e;
+  --amber-ghost:rgba(255,91,31,.15);
+  --green:#7dd87d;
+  --yellow:#ffcc4d;
+  --red:#ff5555;
+  --line:rgba(255,91,31,.18);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+
+html,body{
+  margin:0;height:100%;
+  background:var(--cream);
+  color:var(--ink);
+  font-family:"JetBrains Mono","IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right)
+          env(safe-area-inset-bottom) env(safe-area-inset-left);
+  overscroll-behavior:none;
+  -webkit-user-select:none;user-select:none;
+  -webkit-font-smoothing:antialiased;
+}
+#app{
+  display:flex;flex-direction:column;height:100vh;height:100dvh;
+  max-width:520px;margin:0 auto;
+  background:var(--cream);
+}
+
+/* ---------- HAUT DU BOÎTIER : bandeau pointillé ---------- */
+.device-top{
+  padding:14px 18px 10px;
+  display:flex;flex-direction:column;gap:8px;
+  border-bottom:1px solid var(--cream-3);
+}
+.device-top .led-row{
+  display:flex;align-items:center;gap:10px;
+  font-size:11px;color:var(--ink-2);letter-spacing:.5px;
+}
+.led{
+  width:10px;height:10px;border-radius:50%;
+  background:var(--amber);
+  box-shadow:0 0 8px rgba(255,91,31,.7);
+  flex-shrink:0;
+}
+.dot-matrix{
+  height:26px;
+  background-image:radial-gradient(circle, var(--cream-3) 1px, transparent 1.2px);
+  background-size:7px 7px;
+  background-position:0 0;
+  border-top:1px solid var(--cream-3);
+  border-bottom:1px solid var(--cream-3);
+  opacity:.7;
+  margin:0 -18px;
+}
+.title-row{
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:11px;color:var(--ink-2);letter-spacing:1px;text-transform:uppercase;
+}
+.title-row .barcode{
+  display:inline-flex;gap:2px;align-items:flex-end;height:14px;
+}
+.title-row .barcode i{
+  display:inline-block;width:2px;background:var(--ink-2);height:100%;
+}
+.title-row .barcode i:nth-child(2){height:70%}
+.title-row .barcode i:nth-child(4){height:85%}
+.title-row .barcode i:nth-child(6){height:60%}
+.title-row .barcode i:nth-child(8){height:90%}
+
+/* ---------- ÉCRAN ---------- */
+.screen-wrap{
+  flex:1;padding:14px 14px 10px;
+  display:flex;flex-direction:column;min-height:0;
+}
+.screen{
+  flex:1;background:var(--screen);
+  border-radius:14px;
+  padding:18px 16px;
+  color:var(--amber);
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+  position:relative;
+  box-shadow:
+    inset 0 0 40px rgba(255,91,31,.05),
+    0 1px 0 rgba(255,255,255,.6),
+    0 6px 20px rgba(0,0,0,.08);
+  font-size:14px;line-height:1.55;
+}
+/* effet scanline */
+.screen::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(
+    to bottom,
+    rgba(255,91,31,.035) 0 1px,
+    transparent 1px 3px
+  );
+  border-radius:14px;
+  mix-blend-mode:screen;
+}
+/* vignette */
+.screen::after{
+  content:"";position:absolute;inset:0;pointer-events:none;border-radius:14px;
+  box-shadow:inset 0 0 60px rgba(0,0,0,.6);
+}
+
+.screen h1, .screen h2, .screen h3{
+  margin:0 0 10px;font-size:14px;font-weight:600;
+  letter-spacing:1px;text-transform:uppercase;
+  color:var(--amber);
+}
+.screen h1::before{content:"// "}
+.screen h2::before{content:"// "}
+
+.screen .muted{color:rgba(255,91,31,.55)}
+.screen .dim{color:rgba(255,91,31,.4)}
+.screen .white{color:#f0e9dd}
+.screen .green{color:var(--green)}
+.screen .yellow{color:var(--yellow)}
+.screen .red{color:var(--red)}
+
+/* Liste de séances */
+.session{
+  display:block;padding:14px 14px 14px 0;
+  border-bottom:1px dashed var(--line);
+  cursor:pointer;position:relative;
+}
+.session:last-of-type{border-bottom:none}
+.session:active{background:rgba(255,91,31,.05)}
+.session .idx{
+  color:rgba(255,91,31,.4);font-size:12px;
+  margin-right:8px;
+}
+.session .t{font-size:15px;color:#f0e9dd;font-weight:500;letter-spacing:.5px}
+.session .m{font-size:12px;color:rgba(255,91,31,.55);margin-top:4px}
+.session .actions{
+  position:absolute;right:0;top:50%;transform:translateY(-50%);
+  display:flex;gap:6px;
+}
+.session .actions button{
+  width:36px;height:36px;padding:0;
+  background:transparent;border:1px solid var(--line);
+  color:var(--amber);border-radius:8px;
+  font-family:inherit;font-size:14px;cursor:pointer;
+}
+.session .actions button:active{background:rgba(255,91,31,.1)}
+.session .actions button.play{
+  background:var(--amber);color:var(--screen);border-color:var(--amber);
+  font-weight:700;
+}
+
+/* Écran cours */
+.course-head{
+  display:flex;justify-content:space-between;align-items:baseline;
+  font-size:11px;color:rgba(255,91,31,.5);
+  letter-spacing:1px;text-transform:uppercase;
+  margin-bottom:14px;
+}
+.gbar{
+  display:flex;height:12px;gap:2px;
+  margin:6px 0 8px;
+}
+.gbar .seg{
+  flex-grow:1;flex-basis:0;min-width:3px;position:relative;
+  border:1px solid rgba(255,91,31,.25);
+  border-radius:2px;overflow:hidden;
+}
+.gbar .seg .fill{
+  position:absolute;top:0;left:0;bottom:0;width:0%;
+  transition:width .3s linear;
+}
+.glegend{
+  display:flex;justify-content:space-between;
+  font-size:10px;color:rgba(255,91,31,.45);
+  letter-spacing:.5px;text-transform:uppercase;
+  margin-bottom:18px;
+}
+.glegend .dot{display:inline-block;width:7px;height:7px;border-radius:2px;
+  margin:0 4px 0 8px;vertical-align:middle}
+.glegend .dot:first-child{margin-left:0}
+
+.phase-block{
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:22px 16px;
+  text-align:center;
+  background:rgba(255,91,31,.03);
+  margin-bottom:14px;
+  position:relative;
+}
+.phase-block.warn{border-color:rgba(255,204,77,.6);
+  background:rgba(255,204,77,.05)}
+.phase-block.end{border-color:rgba(255,85,85,.6);
+  background:rgba(255,85,85,.06)}
+.phase-block.warn .phase-time,
+.phase-block.warn .phase-name{color:var(--yellow)}
+.phase-block.end .phase-time,
+.phase-block.end .phase-name{color:var(--red)}
+
+.phase-name{
+  font-size:15px;letter-spacing:4px;text-transform:uppercase;
+  color:var(--amber);margin-bottom:14px;
+}
+.phase-time{
+  font-size:72px;line-height:1;letter-spacing:-3px;
+  color:var(--amber);font-weight:300;
+  font-variant-numeric:tabular-nums;
+  text-shadow:0 0 24px rgba(255,91,31,.35);
+}
+.phase-time.small{font-size:52px}
+.phase-remain{
+  font-size:11px;color:rgba(255,91,31,.5);
+  letter-spacing:2px;text-transform:uppercase;margin-top:10px;
+}
+.phase-bar{
+  margin-top:16px;height:4px;
+  background:rgba(255,91,31,.1);
+  border-radius:2px;overflow:hidden;
+}
+.phase-bar > i{
+  display:block;height:100%;background:var(--amber);
+  transition:width .3s linear;border-radius:2px;
+}
+
+.consigne{
+  border-left:2px solid var(--amber);
+  padding:8px 12px;margin:0 0 14px;
+  background:rgba(255,91,31,.05);
+  font-size:13px;color:rgba(255,209,180,.9);
+  line-height:1.55;white-space:pre-wrap;
+}
+.consigne .lbl{
+  font-size:10px;letter-spacing:2px;text-transform:uppercase;
+  color:rgba(255,91,31,.5);margin-bottom:6px;
+}
+.next{
+  font-size:12px;color:rgba(255,91,31,.55);
+  letter-spacing:.5px;margin-bottom:8px;
+}
+.next b{color:#f0e9dd;font-weight:500}
+
+/* ---------- BOUTONS PHYSIQUES ---------- */
+.device-bottom{
+  padding:10px 18px 18px;
+  display:grid;grid-template-columns:auto 1fr 1fr;gap:10px;
+  background:var(--cream);
+}
+.btn-phys{
+  font-family:inherit;
+  background:linear-gradient(to bottom, #f4f2ec, #e2dfd7);
+  border:1px solid var(--cream-3);
+  border-radius:14px;
+  padding:18px 12px;
+  font-size:13px;
+  font-weight:500;
+  color:var(--ink);
+  letter-spacing:.5px;
+  cursor:pointer;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.9) inset,
+    0 -2px 0 rgba(0,0,0,.04) inset,
+    0 2px 4px rgba(0,0,0,.06);
+  text-transform:uppercase;
+  min-height:56px;
+}
+.btn-phys:active{
+  background:linear-gradient(to bottom, #e2dfd7, #d4d1c8);
+  box-shadow:0 1px 2px rgba(0,0,0,.1) inset;
+  transform:translateY(1px);
+}
+.btn-phys.primary{
+  background:linear-gradient(to bottom, #ff7a3d, var(--amber));
+  color:var(--screen);
+  border-color:#e04a12;
+  font-weight:700;
+  text-shadow:0 1px 0 rgba(255,255,255,.15);
+}
+.btn-phys.primary:active{
+  background:linear-gradient(to bottom, var(--amber), #d94816);
+}
+.btn-phys.danger{
+  color:#b8350f;
+}
+.btn-phys.side{
+  background:linear-gradient(to bottom, #f4f2ec, #e2dfd7);
+  width:52px;min-width:52px;padding:16px 8px;
+  font-size:18px;
+}
+
+/* Grille de contrôle en cours de séance */
+.run-controls{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:8px;margin-top:4px;
+}
+.run-controls .btn-phys{
+  padding:14px 8px;font-size:12px;min-height:48px;
+}
+.run-controls .full{grid-column:span 3}
+
+/* Boutons édition / formulaires */
+.screen button.inline{
+  background:transparent;border:1px solid var(--line);
+  color:var(--amber);font-family:inherit;font-size:12px;
+  padding:8px 12px;border-radius:6px;cursor:pointer;
+  text-transform:uppercase;letter-spacing:1px;
+}
+.screen button.inline:active{background:rgba(255,91,31,.1)}
+.screen button.inline.primary{
+  background:var(--amber);color:var(--screen);border-color:var(--amber);
+  font-weight:700;
+}
+.screen button.inline.danger{
+  color:var(--red);border-color:rgba(255,85,85,.4);
+}
+
+/* Formulaires dans l'écran */
+.field{margin-bottom:14px}
+.field label{
+  display:block;font-size:10px;color:rgba(255,91,31,.55);
+  letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;
+}
+.field input,.field textarea,.field select{
+  width:100%;font-family:inherit;font-size:14px;
+  color:#f0e9dd;background:rgba(255,91,31,.05);
+  border:1px solid var(--line);border-radius:6px;
+  padding:11px 12px;-webkit-appearance:none;appearance:none;
+}
+.field input:focus,.field textarea:focus,.field select:focus{
+  outline:none;border-color:var(--amber);
+}
+.field textarea{min-height:80px;resize:vertical;line-height:1.5}
+.row{display:flex;gap:10px}
+.row .field{flex:1}
+select option{background:#1a1a1a;color:#f0e9dd}
+
+.phase-row{
+  display:flex;align-items:center;gap:8px;
+  padding:12px;border:1px solid var(--line);border-radius:8px;
+  margin-bottom:6px;cursor:pointer;
+  background:rgba(255,91,31,.02);
+}
+.phase-row:active{background:rgba(255,91,31,.08)}
+.phase-row .num{
+  width:24px;height:24px;border-radius:50%;
+  background:rgba(255,91,31,.1);
+  color:var(--amber);display:flex;align-items:center;justify-content:center;
+  font-size:11px;flex-shrink:0;
+}
+.phase-row .info{flex:1;min-width:0}
+.phase-row .info .n{font-size:14px;color:#f0e9dd;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.phase-row .info .d{font-size:11px;color:rgba(255,91,31,.5);margin-top:2px}
+.phase-row button{
+  width:30px;height:30px;padding:0;
+  background:transparent;border:1px solid var(--line);
+  color:var(--amber);border-radius:6px;font-family:inherit;
+  font-size:14px;cursor:pointer;
+}
+.phase-row button:active{background:rgba(255,91,31,.1)}
+
+/* Fin de séance */
+.end-block{
+  text-align:center;padding:24px 0;
+}
+.end-check{
+  font-size:44px;color:var(--amber);margin-bottom:8px;
+  text-shadow:0 0 24px rgba(255,91,31,.5);
+}
+.end-title{
+  font-size:16px;letter-spacing:3px;text-transform:uppercase;
+  margin-bottom:4px;
+}
+.end-sub{font-size:12px;color:rgba(255,91,31,.5);margin-bottom:22px}
+.stat{
+  display:flex;justify-content:space-between;
+  padding:10px 0;border-bottom:1px dashed var(--line);
+  font-size:13px;
+}
+.stat:last-child{border-bottom:none}
+.stat .k{color:rgba(255,91,31,.55)}
+.stat .v{color:#f0e9dd;font-variant-numeric:tabular-nums}
+
+/* ---------- PLEIN ÉCRAN ---------- */
+#fullscreen{
+  position:fixed;inset:0;z-index:9999;
+  display:none;flex-direction:column;
+  background:#000;color:var(--amber);
+  font-family:inherit;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right)
+          env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+#fullscreen.on{display:flex}
+#fullscreen::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(
+    to bottom,
+    rgba(255,91,31,.04) 0 1px,
+    transparent 1px 3px
+  );
+}
+#fs-bar{
+  position:absolute;top:env(safe-area-inset-top);left:0;right:0;
+  height:3px;display:flex;gap:1px;
+}
+#fs-bar .seg{position:relative;flex-grow:1;flex-basis:0;min-width:2px;
+  background:rgba(255,91,31,.1)}
+#fs-bar .seg .fill{position:absolute;inset:0 100% 0 0;
+  transition:right .25s linear, width .25s linear}
+
+#fs-center{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:40px 24px;text-align:center;
+}
+#fs-phase{
+  font-size:13px;letter-spacing:6px;text-transform:uppercase;
+  color:rgba(255,91,31,.55);margin-bottom:28px;
+}
+#fs-time{
+  font-size:104px;font-weight:200;line-height:1;
+  color:var(--amber);
+  font-variant-numeric:tabular-nums;letter-spacing:-5px;
+  text-shadow:0 0 40px rgba(255,91,31,.4);
+}
+#fs-time.small{font-size:80px}
+#fs-sub{
+  font-size:11px;color:rgba(255,91,31,.4);letter-spacing:3px;
+  text-transform:uppercase;margin-top:24px;
+}
+#fs-hint{
+  position:absolute;bottom:calc(env(safe-area-inset-bottom) + 16px);
+  left:0;right:0;text-align:center;
+  font-size:10px;color:rgba(255,91,31,.3);letter-spacing:3px;
+  text-transform:uppercase;
+  transition:opacity .4s;pointer-events:none;
+}
+#fs-hint.hide{opacity:0}
+
+#fs-controls{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:18px 14px calc(env(safe-area-inset-bottom) + 18px);
+  background:linear-gradient(to top, rgba(0,0,0,.98) 50%, transparent);
+  display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;
+  transform:translateY(100%);transition:transform .25s ease-out;
+}
+#fs-controls.show{transform:translateY(0)}
+#fs-controls button{
+  font-family:inherit;
+  background:rgba(255,91,31,.08);
+  border:1px solid rgba(255,91,31,.25);
+  color:var(--amber);
+  border-radius:10px;padding:14px 6px;font-size:13px;
+  cursor:pointer;letter-spacing:.5px;
+  text-transform:uppercase;
+}
+#fs-controls button:active{background:rgba(255,91,31,.2)}
+#fs-controls .quit{
+  grid-column:span 4;
+  background:rgba(255,85,85,.1);
+  border-color:rgba(255,85,85,.3);
+  color:var(--red);font-size:11px;letter-spacing:2px;
+}
+
+/* Variantes plein écran */
+#fullscreen.warn{background:#0a0700}
+#fullscreen.warn #fs-time,
+#fullscreen.warn #fs-phase{color:var(--yellow);
+  text-shadow:0 0 40px rgba(255,204,77,.4)}
+#fullscreen.end{background:#0a0000}
+#fullscreen.end #fs-time,
+#fullscreen.end #fs-phase{color:var(--red);
+  text-shadow:0 0 40px rgba(255,85,85,.5)}
+
+/* Message hint dans l'écran */
+.tip{
+  border:1px dashed var(--line);
+  border-radius:6px;padding:12px;margin-top:14px;
+  font-size:12px;color:rgba(255,91,31,.55);line-height:1.6;
+}
+.tip b{color:var(--amber);font-weight:600}
+
+.empty{text-align:center;color:rgba(255,91,31,.4);padding:30px 20px;font-size:13px}
+
+/* Pour éviter que le scroll en plein écran ne bouge */
+body.fs-lock{overflow:hidden}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="device-top">
+    <div class="led-row">
+      <span class="led"></span>
+      <span id="top-title">CHRONOPHASES v1.0</span>
+      <span style="flex:1"></span>
+      <span id="top-info">IDLE</span>
+    </div>
+    <div class="dot-matrix"></div>
+    <div class="title-row">
+      <span id="top-sub">// mes séances</span>
+      <span class="barcode">
+        <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+      </span>
+    </div>
+  </div>
+
+  <div class="screen-wrap">
+    <div class="screen" id="screen"></div>
+  </div>
+
+  <div class="device-bottom" id="device-bottom"></div>
+</div>
+
+<!-- ---------- PLEIN ÉCRAN ---------- -->
+<div id="fullscreen">
+  <div id="fs-bar"></div>
+  <div id="fs-center">
+    <div id="fs-phase">PHASE</div>
+    <div id="fs-time">0:00</div>
+    <div id="fs-sub">—</div>
+  </div>
+  <div id="fs-hint">▸ TOUCHE POUR COMMANDES</div>
+  <div id="fs-controls">
+    <button id="fs-minus">−1m</button>
+    <button id="fs-pause">PAUSE</button>
+    <button id="fs-plus">+1m</button>
+    <button id="fs-skip">NEXT</button>
+    <button class="quit" id="fs-quit">■ QUITTER LE PLEIN ÉCRAN</button>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* ============================================================
+   SÉANCES PAR DÉFAUT
+============================================================ */
+var DEFAULT_SESSIONS = [
+  {
+    id: '9ocom-5oct',
+    title: '9OCOM — 5 OCT',
+    subtitle: 'S2 · ESSAIS, CHOIX, TRAVAIL FINAL · 8H10–9H50',
+    phases: [
+      { name:'ACCUEIL', dur:5*60, type:'info' },
+      { name:'ANNONCE', dur:5*60, type:'info',
+        consigne:"« Sur votre feuille de brouillon, vous faites un essai par cadre, avec des images différentes (2 ou 3 essais), puis vous choisissez le meilleur. Un essai raté n’est pas grave. Osez tenter une image plus difficile. »" },
+      { name:'DÉMO 16×16', dur:5*60, type:'info',
+        consigne:"Un essai = la silhouette dans un cadre de 16×16 cases, 3 couleurs maximum, sans chercher les détails." },
+      { name:'ESSAIS', dur:25*60, type:'work',
+        consigne:"Environ 8 min par essai. Passer individuellement, encourager. Jamais de facile/difficile devant la classe." },
+      { name:'CHOIX', dur:5*60, type:'info',
+        consigne:"Valider individuellement le meilleur essai. Préparer la grille 32×32." },
+      { name:'PAUSE', dur:5*60, type:'pause' },
+      { name:'DÉMO 32×32', dur:5*60, type:'info',
+        consigne:"Une case de l’essai = un carré de 2×2 sur la grille 32×32. Palette jusqu’à 5 couleurs." },
+      { name:'REPORT+COLOR', dur:35*60, type:'work',
+        consigne:"Report au crayon, puis coloriage. Feedback individuel en circulant." },
+      { name:'RANGEMENT', dur:5*60, type:'info',
+        consigne:"Brouillons et grilles dans les pochettes nominatives." },
+      { name:'BILAN', dur:5*60, type:'info',
+        consigne:"Annoncer : le 26 octobre, on continue le travail final." }
+    ]
+  },
+  {
+    id: '11vg-5oct',
+    title: '11VG — 5 OCT',
+    subtitle: 'REPORT A3 + PEINTURE · 10H05–11H40',
+    phases: [
+      { name:'ACCUEIL', dur:5*60, type:'info' },
+      { name:'MISE EN COMMUN', dur:7*60, type:'info',
+        consigne:"1 à 2 exemples. Aplat = couleur uniforme, sans traces. Blanc et noir : deux séries séparées." },
+      { name:'CONSIGNE', dur:3*60, type:'info',
+        consigne:"Terminer le report sur A3. Sans esquisse A4 : directement sur le A3." },
+      { name:'REPORT A3', dur:25*60, type:'work',
+        consigne:"Délimiter les plans, couleur dominante, valeurs prévues." },
+      { name:'PASSAGE IND.', dur:5*60, type:'info',
+        consigne:"Priorité aux élèves en retard." },
+      { name:'PAUSE', dur:5*60, type:'pause' },
+      { name:'DÉMO PEINTURE', dur:8*60, type:'info',
+        consigne:"Tenue du pinceau, aplat, trait fin type fil électrique. Commencer par l’arrière-plan. Matériel seulement APRÈS la démo." },
+      { name:'DISTRIBUTION', dur:4*60, type:'info' },
+      { name:'PEINTURE', dur:23*60, type:'work',
+        consigne:"Aplats. Passage individuel : tenue du pinceau, qualité des aplats." },
+      { name:'RANGEMENT', dur:10*60, type:'pause',
+        consigne:"Rinçage pinceaux, gobelets, nettoyage des tables." }
+    ]
+  }
+];
+
+/* ============================================================
+   STOCKAGE
+============================================================ */
+var STORE_KEY = 'chronophases:retro:v1';
+var sessions = loadSessions();
+
+function loadSessions(){
+  try {
+    var raw = localStorage.getItem(STORE_KEY);
+    if (!raw) return clone(DEFAULT_SESSIONS);
+    var parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed) || !parsed.length) return clone(DEFAULT_SESSIONS);
+    return parsed;
+  } catch(e){ return clone(DEFAULT_SESSIONS); }
+}
+function saveSessions(){
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(sessions)); } catch(e){}
+}
+function clone(o){ return JSON.parse(JSON.stringify(o)); }
+function uid(){ return 's' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+/* ============================================================
+   OUTILS
+============================================================ */
+var ALERT_AT = [300, 120, 30];
+var state = null;
+var tickHandle = null;
+var wakeLock = null;
+var audioCtx = null;
+var fsActive = false;
+var fsControlsTimer = null;
+
+var screenEl = document.getElementById('screen');
+var topTitleEl = document.getElementById('top-title');
+var topSubEl = document.getElementById('top-sub');
+var topInfoEl = document.getElementById('top-info');
+var bottomEl = document.getElementById('device-bottom');
+
+function esc(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function fmt(sec){
+  sec = Math.max(0, Math.round(sec));
+  var m = Math.floor(sec/60), s = sec%60;
+  return m + ':' + (s<10?'0':'') + s;
+}
+function fmtLong(sec){
+  sec = Math.max(0, Math.round(sec));
+  var m = Math.floor(sec/60), s = sec%60;
+  if (m === 0) return s + 's';
+  if (s === 0) return m + 'min';
+  return m + 'min' + (s<10?'0':'') + s;
+}
+function fmtHMS(sec){
+  sec = Math.max(0, Math.round(sec));
+  var h = Math.floor(sec/3600);
+  var m = Math.floor((sec%3600)/60);
+  if (h > 0) return h + 'h' + (m<10?'0':'') + m;
+  return m + 'min';
+}
+
+function askNotif(){
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'default'){
+    try { Notification.requestPermission(); } catch(e){}
+  }
+}
+function notify(title, body){
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  try { new Notification(title, { body: body }); } catch(e){}
+}
+function beep(freq, dur){
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = 'square'; o.frequency.value = freq || 880;
+    o.connect(g); g.connect(audioCtx.destination);
+    var t = audioCtx.currentTime, d = dur || 0.06;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.06, t + 0.005);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    o.start(t); o.stop(t + d + 0.02);
+  } catch(e){}
+}
+function keepAwake(){
+  try {
+    if ('wakeLock' in navigator && !wakeLock){
+      navigator.wakeLock.request('screen').then(function(w){ wakeLock = w; }).catch(function(){});
+    }
+  } catch(e){}
+}
+function releaseAwake(){
+  try { if (wakeLock){ wakeLock.release(); wakeLock = null; } } catch(e){}
+}
+document.addEventListener('visibilitychange', function(){
+  if (document.visibilityState === 'visible' && state && state.running) keepAwake();
+});
+
+function colorsFor(type){
+  if (type === 'pause') return { solid:'#ffcc4d', empty:'rgba(255,204,77,.15)' };
+  if (type === 'work')  return { solid:'#7dd87d', empty:'rgba(125,216,125,.15)' };
+  return { solid:'#ff5b1f', empty:'rgba(255,91,31,.15)' };
+}
+
+function setTop(title, sub, info){
+  topTitleEl.textContent = title;
+  topSubEl.textContent = sub || '';
+  topInfoEl.textContent = info || 'IDLE';
+}
+
+function setBottom(html){
+  bottomEl.innerHTML = html;
+}
+
+/* ============================================================
+   LISTE DES SÉANCES
+============================================================ */
+function renderList(){
+  setTop('CHRONOPHASES v1.0', '// mes séances', 'IDLE');
+
+  var html = '';
+  html += '<h1>SÉANCES</h1>';
+  if (!sessions.length){
+    html += '<div class="empty">Aucune séance.<br>Ajoute-en une ci-dessous.</div>';
+  }
+  for (var i=0; i<sessions.length; i++){
+    var s = sessions[i];
+    var total = 0;
+    for (var j=0; j<s.phases.length; j++) total += s.phases[j].dur;
+    html += '<div class="session" data-id="'+esc(s.id)+'">'
+         +   '<div style="padding-right:90px">'
+         +     '<span class="idx">'+String(i+1).padStart(2,'0')+'</span>'
+         +     '<span class="t">'+esc(s.title)+'</span>'
+         +     '<div class="m">'+s.phases.length+' phases · '+fmtHMS(total)+'</div>'
+         +   '</div>'
+         +   '<div class="actions">'
+         +     '<button data-menu="'+esc(s.id)+'" title="modifier">⋯</button>'
+         +     '<button class="play" data-play="'+esc(s.id)+'" title="démarrer">▶</button>'
+         +   '</div>'
+         + '</div>';
+  }
+  html += '<div class="tip"><b>INFO —</b> Sauvegarde automatique dans le navigateur. '
+       + 'Menu ⋯ → EXPORT pour sauvegarder ailleurs.</div>';
+
+  screenEl.innerHTML = html;
+
+  var cards = screenEl.querySelectorAll('.session');
+  for (var k=0; k<cards.length; k++){
+    cards[k].onclick = function(e){
+      if (e.target.closest('button')) return;
+      startSession(this.getAttribute('data-id'));
+    };
+  }
+  var plays = screenEl.querySelectorAll('[data-play]');
+  for (var p=0; p<plays.length; p++){
+    plays[p].onclick = function(e){
+      e.stopPropagation();
+      startSession(this.getAttribute('data-play'));
+    };
+  }
+  var menus = screenEl.querySelectorAll('[data-menu]');
+  for (var m=0; m<menus.length; m++){
+    menus[m].onclick = function(e){
+      e.stopPropagation();
+      sessionMenu(this.getAttribute('data-menu'));
+    };
+  }
+
+  setBottom(
+      '<button class="btn-phys side" id="btn-add" title="nouvelle séance">＋</button>'
+    + '<button class="btn-phys primary" id="btn-first">▶ DÉMARRER</button>'
+    + '<button class="btn-phys" id="btn-edit-first">EDIT</button>'
+  );
+  document.getElementById('btn-add').onclick = newSession;
+  document.getElementById('btn-first').onclick = function(){
+    if (sessions.length) startSession(sessions[0].id);
+  };
+  document.getElementById('btn-edit-first').onclick = function(){
+    if (sessions.length) editSession(sessions[0].id);
+  };
+}
+
+function findSession(id){
+  for (var i=0; i<sessions.length; i++) if (sessions[i].id === id) return sessions[i];
+  return null;
+}
+
+function sessionMenu(id){
+  var s = findSession(id);
+  if (!s) return;
+  var c = prompt(
+    'SÉANCE : ' + s.title + '\n\n'
+    + '1 = MODIFIER\n'
+    + '2 = DUPLIQUER\n'
+    + '3 = RENOMMER\n'
+    + '4 = SUPPRIMER\n'
+    + '5 = EXPORTER TOUT\n'
+    + '6 = IMPORTER\n',
+    '1'
+  );
+  if (c === '1') return editSession(id);
+  if (c === '2') return duplicateSession(id);
+  if (c === '3') return renameSession(id);
+  if (c === '4') return deleteSession(id);
+  if (c === '5') return exportSessions();
+  if (c === '6') return importSessions();
+}
+
+function newSession(){
+  var t = prompt('TITRE DE LA SÉANCE :', 'NOUVELLE SÉANCE');
+  if (!t) return;
+  var s = {
+    id: uid(),
+    title: t.toUpperCase(),
+    subtitle: '',
+    phases: [
+      { name:'ACCUEIL', dur:5*60, type:'info' },
+      { name:'TRAVAIL', dur:20*60, type:'work' },
+      { name:'BILAN', dur:5*60, type:'info' }
+    ]
+  };
+  sessions.push(s);
+  saveSessions();
+  editSession(s.id);
+}
+
+function duplicateSession(id){
+  var s = findSession(id);
+  if (!s) return;
+  var copy = clone(s);
+  copy.id = uid();
+  copy.title = s.title + ' (COPIE)';
+  sessions.push(copy);
+  saveSessions();
+  renderList();
+}
+
+function renameSession(id){
+  var s = findSession(id);
+  if (!s) return;
+  var t = prompt('NOUVEAU TITRE :', s.title);
+  if (!t) return;
+  s.title = t;
+  var sub = prompt('SOUS-TITRE (facultatif) :', s.subtitle || '');
+  if (sub !== null) s.subtitle = sub;
+  saveSessions();
+  renderList();
+}
+
+function deleteSession(id){
+  var s = findSession(id);
+  if (!s) return;
+  if (!confirm('SUPPRIMER « ' + s.title + ' » ?')) return;
+  for (var i=0; i<sessions.length; i++){
+    if (sessions[i].id === id){ sessions.splice(i,1); break; }
+  }
+  saveSessions();
+  renderList();
+}
+
+function exportSessions(){
+  var data = JSON.stringify(sessions, null, 2);
+  var blob = new Blob([data], {type:'application/json'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'chronophases-' + new Date().toISOString().slice(0,10) + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+}
+
+function importSessions(){
+  var input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'application/json,.json';
+  input.onchange = function(){
+    var f = input.files && input.files[0];
+    if (!f) return;
+    var reader = new FileReader();
+    reader.onload = function(){
+      try {
+        var arr = JSON.parse(reader.result);
+        if (!Array.isArray(arr)) throw new Error('Format invalide');
+        var valid = arr.filter(function(s){ return s && s.title && Array.isArray(s.phases); });
+        if (!valid.length) throw new Error('Aucune séance valide');
+        if (!confirm('Ajouter ' + valid.length + ' séance(s) ?')) return;
+        for (var i=0; i<valid.length; i++){
+          if (!valid[i].id) valid[i].id = uid();
+          sessions.push(valid[i]);
+        }
+        saveSessions();
+        renderList();
+      } catch(e){ alert('Import impossible : ' + e.message); }
+    };
+    reader.readAsText(f);
+  };
+  input.click();
+}
+
+/* ============================================================
+   ÉDITION SÉANCE
+============================================================ */
+var editingId = null;
+
+function editSession(id){
+  var s = findSession(id);
+  if (!s) return renderList();
+  editingId = id;
+
+  setTop('EDIT', '// ' + s.title, 'EDITING');
+
+  var total = 0;
+  for (var i=0; i<s.phases.length; i++) total += s.phases[i].dur;
+
+  var html = '';
+  html += '<h1>ÉDITER</h1>';
+  html += '<div class="field"><label>TITRE</label>'
+       +  '<input id="f-title" value="'+esc(s.title)+'"></div>';
+  html += '<div class="field"><label>SOUS-TITRE</label>'
+       +  '<input id="f-sub" value="'+esc(s.subtitle || '')+'" placeholder="facultatif"></div>';
+  html += '<div style="font-size:10px;color:rgba(255,91,31,.5);letter-spacing:2px;'
+       + 'text-transform:uppercase;margin:18px 0 10px">'
+       + 'PHASES · '+s.phases.length+' · '+fmtHMS(total)+'</div>';
+
+  for (var j=0; j<s.phases.length; j++){
+    var p = s.phases[j];
+    html += '<div class="phase-row" data-edit="'+j+'">'
+         +   '<div class="num">'+(j+1)+'</div>'
+         +   '<div class="info">'
+         +     '<div class="n">'+esc(p.name)+'</div>'
+         +     '<div class="d">'+fmtLong(p.dur)+' · '+p.type+'</div>'
+         +   '</div>'
+         +   '<button data-up="'+j+'">↑</button>'
+         +   '<button data-down="'+j+'">↓</button>'
+         + '</div>';
+  }
+
+  html += '<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">'
+       +   '<button class="inline primary" id="add-phase">+ PHASE</button>'
+       +   '<button class="inline danger" id="del-sess">EFFACER SÉANCE</button>'
+       + '</div>';
+
+  screenEl.innerHTML = html;
+
+  var fT = document.getElementById('f-title');
+  var fS = document.getElementById('f-sub');
+  fT.oninput = function(){ s.title = fT.value; saveSessions(); };
+  fS.oninput = function(){ s.subtitle = fS.value; saveSessions(); };
+
+  var rows = screenEl.querySelectorAll('[data-edit]');
+  for (var k=0; k<rows.length; k++){
+    rows[k].onclick = function(e){
+      if (e.target.closest('button')) return;
+      editPhase(parseInt(this.getAttribute('data-edit'),10));
+    };
+  }
+  var ups = screenEl.querySelectorAll('[data-up]');
+  for (var u=0; u<ups.length; u++){
+    ups[u].onclick = function(e){
+      e.stopPropagation();
+      movePhase(parseInt(this.getAttribute('data-up'),10), -1);
+    };
+  }
+  var downs = screenEl.querySelectorAll('[data-down]');
+  for (var d=0; d<downs.length; d++){
+    downs[d].onclick = function(e){
+      e.stopPropagation();
+      movePhase(parseInt(this.getAttribute('data-down'),10), +1);
+    };
+  }
+  document.getElementById('add-phase').onclick = function(){
+    s.phases.push({ name:'NOUVELLE PHASE', dur:5*60, type:'info', consigne:'' });
+    saveSessions();
+    editSession(id);
+  };
+  document.getElementById('del-sess').onclick = function(){
+    if (!confirm('Supprimer cette séance ?')) return;
+    deleteSession(id);
+  };
+
+  setBottom(
+      '<button class="btn-phys side" id="btn-back">←</button>'
+    + '<button class="btn-phys" id="btn-cancel">ANNULER</button>'
+    + '<button class="btn-phys primary" id="btn-save">✓ VALIDER</button>'
+  );
+  document.getElementById('btn-back').onclick = function(){ saveSessions(); renderList(); };
+  document.getElementById('btn-cancel').onclick = function(){ saveSessions(); renderList(); };
+  document.getElementById('btn-save').onclick = function(){ saveSessions(); renderList(); };
+}
+
+function movePhase(i, dir){
+  var s = findSession(editingId);
+  if (!s) return;
+  var j = i + dir;
+  if (j < 0 || j >= s.phases.length) return;
+  var tmp = s.phases[i];
+  s.phases[i] = s.phases[j];
+  s.phases[j] = tmp;
+  saveSessions();
+  editSession(editingId);
+}
+
+/* ============================================================
+   ÉDITION PHASE
+============================================================ */
+function editPhase(index){
+  var s = findSession(editingId);
+  if (!s) return;
+  var p = s.phases[index];
+
+  setTop('EDIT PHASE', '// ' + p.name, 'EDITING');
+
+  var mins = Math.floor(p.dur / 60);
+  var secs = p.dur % 60;
+
+  var html = '';
+  html += '<h1>PHASE '+(index+1)+'</h1>';
+
+  html += '<div class="field"><label>NOM</label>'
+       +  '<input id="p-name" value="'+esc(p.name)+'"></div>';
+
+  html += '<div class="row">'
+       +   '<div class="field"><label>MIN</label>'
+       +     '<input id="p-min" type="number" min="0" max="180" value="'+mins+'"></div>'
+       +   '<div class="field"><label>SEC</label>'
+       +     '<input id="p-sec" type="number" min="0" max="59" value="'+secs+'"></div>'
+       + '</div>';
+
+  html += '<div class="field"><label>TYPE</label>'
+       +   '<select id="p-type">'
+       +     '<option value="info"'+(p.type==='info'?' selected':'')+'>INFO — ORANGE (annonce, démo)</option>'
+       +     '<option value="work"'+(p.type==='work'?' selected':'')+'>TRAVAIL — VERT (élèves)</option>'
+       +     '<option value="pause"'+(p.type==='pause'?' selected':'')+'>PAUSE — JAUNE</option>'
+       +   '</select></div>';
+
+  html += '<div class="field"><label>CONSIGNE PRIVÉE</label>'
+       +  '<textarea id="p-consigne" placeholder="Pour toi seulement…">'
+       +  esc(p.consigne || '') + '</textarea></div>';
+
+  html += '<div style="margin-top:14px">'
+       +   '<button class="inline danger" id="p-del">SUPPRIMER CETTE PHASE</button>'
+       + '</div>';
+
+  screenEl.innerHTML = html;
+
+  var fN = document.getElementById('p-name');
+  var fM = document.getElementById('p-min');
+  var fS = document.getElementById('p-sec');
+  var fT = document.getElementById('p-type');
+  var fC = document.getElementById('p-consigne');
+
+  function persist(){
+    p.name = fN.value || 'PHASE';
+    var m = parseInt(fM.value,10) || 0;
+    var sc = parseInt(fS.value,10) || 0;
+    if (m < 0) m = 0;
+    if (sc < 0) sc = 0;
+    if (sc > 59) sc = 59;
+    p.dur = Math.max(1, m*60 + sc);
+    p.type = fT.value;
+    p.consigne = fC.value;
+    saveSessions();
+  }
+  fN.oninput = persist;
+  fM.oninput = persist;
+  fS.oninput = persist;
+  fT.onchange = persist;
+  fC.oninput = persist;
+
+  document.getElementById('p-del').onclick = function(){
+    if (!confirm('Supprimer cette phase ?')) return;
+    s.phases.splice(index, 1);
+    saveSessions();
+    editSession(editingId);
+  };
+
+  setBottom(
+      '<button class="btn-phys side" id="btn-back">←</button>'
+    + '<button class="btn-phys" id="btn-cancel">ANNULER</button>'
+    + '<button class="btn-phys primary" id="btn-save">✓ VALIDER</button>'
+  );
+  document.getElementById('btn-back').onclick = function(){ saveSessions(); editSession(editingId); };
+  document.getElementById('btn-cancel').onclick = function(){ saveSessions(); editSession(editingId); };
+  document.getElementById('btn-save').onclick = function(){ saveSessions(); editSession(editingId); };
+}
+
+/* ============================================================
+   SÉANCE EN COURS
+============================================================ */
+function startSession(id){
+  var s = findSession(id);
+  if (!s || !s.phases.length) return;
+
+  askNotif();
+  beep(660, 0.06);
+  keepAwake();
+
+  var p0 = s.phases[0];
+  state = {
+    session: s,
+    index: 0,
+    remaining: p0.dur,
+    phaseEndsAt: Date.now() + p0.dur * 1000,
+    running: true,
+    fired: {},
+    startedAt: Date.now()
+  };
+  renderRun();
+  startTicking();
+}
+
+function renderRun(){
+  var s = state.session;
+  var p = s.phases[state.index];
+  var isPause = p.type === 'pause';
+  var next = s.phases[state.index + 1];
+
+  setTop(s.title, '// phase ' + (state.index+1) + '/' + s.phases.length, 'RUNNING');
+
+  // Barre globale
+  var html = '';
+  html += '<div class="course-head">'
+       +   '<span>PHASE '+(state.index+1)+'/'+s.phases.length+'</span>'
+       +   '<span id="gl-left">…</span>'
+       + '</div>';
+
+  html += '<div class="gbar">';
+  for (var i=0; i<s.phases.length; i++){
+    var pp = s.phases[i];
+    var c = colorsFor(pp.type);
+    html += '<div class="seg" data-seg="'+i+'" style="flex-grow:'+pp.dur+'">'
+         +   '<div class="fill" data-fill="'+i+'" style="background:'+c.solid+'"></div>'
+         + '</div>';
+  }
+  html += '</div>';
+  html += '<div class="glegend">'
+       +   '<span>REMPLISSAGE</span>'
+       +   '<span>'
+       +     '<span class="dot" style="background:#ff5b1f"></span>info'
+       +     '<span class="dot" style="background:#7dd87d"></span>travail'
+       +     '<span class="dot" style="background:#ffcc4d"></span>pause'
+       +   '</span>'
+       + '</div>';
+
+  // Bloc phase
+  var cls = isPause ? '' : '';
+  html += '<div class="phase-block '+cls+'" id="phase-block">'
+       +   '<div class="phase-name">'+esc(p.name)+'</div>'
+       +   '<div class="phase-time" id="phase-time">'+fmt(state.remaining)+'</div>'
+       +   '<div class="phase-remain">restant dans cette phase</div>'
+       +   '<div class="phase-bar"><i id="phase-bar" style="width:0%"></i></div>'
+       + '</div>';
+
+  if (p.consigne){
+    html += '<div class="consigne"><div class="lbl">CONSIGNE PRIVÉE</div>'
+         +  esc(p.consigne) + '</div>';
+  }
+
+  html += '<div class="next">SUIVANT ▸ <b>'
+       +  (next ? esc(next.name) + ' · ' + fmtLong(next.dur) : 'FIN DE SÉANCE')
+       +  '</b></div>';
+
+  screenEl.innerHTML = html;
+
+  // Boutons physiques
+  setBottom(
+      '<button class="btn-phys side" id="b-minus">−1m</button>'
+    + '<button class="btn-phys" id="b-pause">PAUSE</button>'
+    + '<button class="btn-phys primary" id="b-fs">⛶ SOBRE</button>'
+  );
+  // Remplacer la ligne de boutons du bas par une grille plus complète
+  var extra = document.createElement('div');
+  extra.className = 'run-controls';
+  extra.style.gridColumn = 'span 3';
+  extra.style.marginTop = '6px';
+  extra.innerHTML =
+      '<button class="btn-phys" id="b-minus2">−1m</button>'
+    + '<button class="btn-phys" id="b-pause2">PAUSE</button>'
+    + '<button class="btn-phys" id="b-plus">+1m</button>'
+    + '<button class="btn-phys full" id="b-skip">▸ PHASE SUIVANTE</button>'
+    + '<button class="btn-phys full danger" id="b-stop">■ TERMINER LA SÉANCE</button>'
+    + '<button class="btn-phys full primary" id="b-fs2">⛶  MODE PLEIN ÉCRAN SOBRE</button>';
+  bottomEl.appendChild(extra);
+
+  document.getElementById('b-minus').onclick = function(){ adjust(-60); };
+  document.getElementById('b-minus2').onclick = function(){ adjust(-60); };
+  document.getElementById('b-plus').onclick = function(){ adjust(60); };
+  document.getElementById('b-pause').onclick = function(){ togglePause(); };
+  document.getElementById('b-pause2').onclick = function(){ togglePause(); };
+  document.getElementById('b-skip').onclick = function(){ advance(true); };
+  document.getElementById('b-stop').onclick = stopSession;
+  document.getElementById('b-fs').onclick = enterFullscreen;
+  document.getElementById('b-fs2').onclick = enterFullscreen;
+
+  updateGlobalBar();
+  updateDisplay();
+}
+
+function updateGlobalBar(){
+  if (!state) return;
+  var s = state.session;
+
+  var totalDur = 0;
+  for (var i=0; i<s.phases.length; i++) totalDur += s.phases[i].dur;
+  var elapsedBefore = 0;
+  for (var j=0; j<state.index; j++) elapsedBefore += s.phases[j].dur;
+  var currentElapsed = s.phases[state.index].dur - state.remaining;
+  var totalElapsed = elapsedBefore + currentElapsed;
+  var totalRemaining = Math.max(0, totalDur - totalElapsed);
+
+  for (var k=0; k<s.phases.length; k++){
+    var fill = screenEl.querySelector('[data-fill="'+k+'"]');
+    if (!fill) continue;
+    var pct;
+    if (k < state.index) pct = 100;
+    else if (k > state.index) pct = 0;
+    else pct = Math.min(100, Math.max(0, (currentElapsed / s.phases[k].dur) * 100));
+    fill.style.width = pct.toFixed(1) + '%';
+  }
+
+  var el = document.getElementById('gl-left');
+  if (el) el.textContent = 'RESTE ' + fmtHMS(totalRemaining).toUpperCase()
+                        + ' / ' + fmtHMS(totalDur).toUpperCase();
+
+  topInfoEl.textContent = fmt(state.remaining) + ' · PHASE ' + (state.index+1) + '/' + s.phases.length;
+
+  updateFsBar();
+}
+
+function updateFsBar(){
+  if (!fsActive || !state) return;
+  var s = state.session;
+  var fsBar = document.getElementById('fs-bar');
+
+  if (!fsBar.childNodes.length){
+    for (var i=0; i<s.phases.length; i++){
+      var c = colorsFor(s.phases[i].type);
+      var seg = document.createElement('div');
+      seg.className = 'seg';
+      seg.style.flexGrow = s.phases[i].dur;
+      var f = document.createElement('div');
+      f.className = 'fill';
+      f.style.background = c.solid;
+      f.setAttribute('data-fsfill', i);
+      seg.appendChild(f);
+      fsBar.appendChild(seg);
+    }
+  }
+
+  var elapsedBefore = 0;
+  for (var j=0; j<state.index; j++) elapsedBefore += s.phases[j].dur;
+  var currentElapsed = s.phases[state.index].dur - state.remaining;
+
+  for (var k=0; k<s.phases.length; k++){
+    var f = fsBar.querySelector('[data-fsfill="'+k+'"]');
+    if (!f) continue;
+    var pct;
+    if (k < state.index) pct = 100;
+    else if (k > state.index) pct = 0;
+    else pct = Math.min(100, Math.max(0, (currentElapsed / s.phases[k].dur) * 100));
+    f.style.right = (100 - pct) + '%';
+  }
+}
+
+function updateDisplay(){
+  if (!state) return;
+  var p = state.session.phases[state.index];
+  var elT = document.getElementById('phase-time');
+  var elB = document.getElementById('phase-bar');
+  var box = document.getElementById('phase-block');
+  if (!elT || !elB || !box) return;
+
+  elT.textContent = fmt(state.remaining);
+  if (state.remaining < 60) elT.classList.add('small');
+  else elT.classList.remove('small');
+
+  var pct = Math.min(100, Math.max(0, 100 - (state.remaining / p.dur) * 100));
+  elB.style.width = pct.toFixed(1) + '%';
+
+  box.classList.remove('warn','end');
+  if (state.remaining <= 30) box.classList.add('end');
+  else if (state.remaining <= 120) box.classList.add('warn');
+
+  if (!fsActive) document.title = fmt(state.remaining) + ' · ' + p.name;
+}
+
+function startTicking(){
+  clearInterval(tickHandle);
+  tickHandle = setInterval(tick, 250);
+  tick();
+}
+
+function tick(){
+  if (!state || !state.running) return;
+  state.remaining = Math.max(0, Math.round((state.phaseEndsAt - Date.now())/1000));
+
+  var p = state.session.phases[state.index];
+  for (var i=0; i<ALERT_AT.length; i++){
+    var th = ALERT_AT[i];
+    if (state.remaining <= th && !state.fired[th] && state.remaining > 0){
+      state.fired[th] = true;
+      if (th === 300){ beep(700,0.06); notify(p.name, 'Il reste 5 minutes.'); }
+      if (th === 120){ beep(760,0.06); notify(p.name, 'Il reste 2 minutes.'); }
+      if (th === 30) { beep(820,0.06); notify(p.name, 'Il reste 30 secondes.'); }
+    }
+  }
+
+  if (state.remaining <= 0){ advance(false); return; }
+  updateDisplay();
+  updateGlobalBar();
+  if (fsActive) updateFs();
+}
+
+function adjust(sec){
+  if (!state) return;
+  state.phaseEndsAt += sec * 1000;
+  state.remaining = Math.max(0, Math.round((state.phaseEndsAt - Date.now())/1000));
+  var kept = {};
+  for (var i=0; i<ALERT_AT.length; i++){
+    var th = ALERT_AT[i];
+    if (state.fired[th] && state.remaining > th) kept[th] = false;
+    else if (state.fired[th]) kept[th] = true;
+  }
+  state.fired = kept;
+  beep(520, 0.03);
+  updateDisplay();
+  updateGlobalBar();
+  if (fsActive) updateFs();
+}
+
+function togglePause(){
+  if (!state) return;
+  var b1 = document.getElementById('b-pause');
+  var b2 = document.getElementById('b-pause2');
+  if (state.running){
+    state.running = false;
+    state.remaining = Math.max(0, Math.round((state.phaseEndsAt - Date.now())/1000));
+    clearInterval(tickHandle);
+    releaseAwake();
+    if (b1) b1.textContent = 'REPRENDRE';
+    if (b2) b2.textContent = 'REPRENDRE';
+  } else {
+    state.running = true;
+    state.phaseEndsAt = Date.now() + state.remaining * 1000;
+    startTicking();
+    keepAwake();
+    if (b1) b1.textContent = 'PAUSE';
+    if (b2) b2.textContent = 'PAUSE';
+  }
+  if (fsActive) updateFs();
+}
+
+function advance(manual){
+  if (!state) return;
+  var prev = state.session.phases[state.index];
+
+  if (manual){
+    beep(500, 0.03);
+  } else {
+    beep(880, 0.08);
+    setTimeout(function(){ beep(1100, 0.08); }, 120);
+    var nxt = state.session.phases[state.index + 1];
+    notify('▸ ' + prev.name + ' TERMINÉ',
+           nxt ? 'Suivant : ' + nxt.name + ' (' + fmtLong(nxt.dur) + ')'
+               : 'Fin de la séance.');
+  }
+
+  if (state.index >= state.session.phases.length - 1){
+    finishSession();
+    return;
+  }
+  state.index++;
+  var p = state.session.phases[state.index];
+  state.remaining = p.dur;
+  state.phaseEndsAt = Date.now() + p.dur * 1000;
+  state.fired = {};
+
+  if (fsActive){
+    document.getElementById('fs-bar').innerHTML = '';
+  }
+  renderRun();
+  if (fsActive) updateFs();
+}
+
+function stopSession(){
+  if (!confirm('Terminer la séance maintenant ?')) return;
+  finishSession();
+}
+
+function finishSession(){
+  clearInterval(tickHandle);
+  releaseAwake();
+  if (fsActive) exitFullscreen();
+
+  var s = state.session;
+  var planned = 0;
+  for (var i=0; i<s.phases.length; i++) planned += s.phases[i].dur;
+  var elapsed = Math.round((Date.now() - state.startedAt)/1000);
+
+  beep(880,0.08);
+  setTimeout(function(){ beep(660,0.08); }, 130);
+  setTimeout(function(){ beep(440,0.12); }, 260);
+
+  setTop('TERMINÉ', '// ' + s.title, 'DONE');
+
+  var diff = elapsed - planned;
+  var diffTxt = (diff >= 0 ? '+' : '−') + fmtLong(Math.abs(diff));
+
+  screenEl.innerHTML =
+      '<div class="end-block">'
+    +   '<div class="end-check">✓</div>'
+    +   '<div class="end-title">SÉANCE TERMINÉE</div>'
+    +   '<div class="end-sub">'+esc(s.title)+'</div>'
+    +   '<div class="stat"><span class="k">PRÉVU</span><span class="v">'+fmtLong(planned)+'</span></div>'
+    +   '<div class="stat"><span class="k">RÉEL</span><span class="v">'+fmtLong(elapsed)+'</span></div>'
+    +   '<div class="stat"><span class="k">ÉCART</span><span class="v">'+diffTxt+'</span></div>'
+    + '</div>';
+
+  setBottom(
+      '<button class="btn-phys side" id="b-home">←</button>'
+    + '<button class="btn-phys" id="b-restart">RELANCER</button>'
+    + '<button class="btn-phys primary" id="b-list">RETOUR LISTE</button>'
+  );
+  document.getElementById('b-home').onclick = function(){ state = null; renderList(); };
+  document.getElementById('b-list').onclick = function(){ state = null; renderList(); };
+  document.getElementById('b-restart').onclick = function(){
+    var id = s.id;
+    state = null;
+    startSession(id);
+  };
+}
+
+/* ============================================================
+   PLEIN ÉCRAN
+============================================================ */
+function enterFullscreen(){
+  if (!state) return;
+  fsActive = true;
+  document.body.classList.add('fs-lock');
+  var fsRoot = document.getElementById('fullscreen');
+  fsRoot.classList.add('on');
+  document.getElementById('fs-bar').innerHTML = '';
+  updateFs();
+
+  try {
+    var el = document.documentElement;
+    if (el.requestFullscreen) el.requestFullscreen();
+    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+  } catch(e){}
+
+  var controls = document.getElementById('fs-controls');
+  var hint = document.getElementById('fs-hint');
+  controls.classList.remove('show');
+  hint.classList.remove('hide');
+  setTimeout(function(){ hint.classList.add('hide'); }, 2500);
+
+  keepAwake();
+}
+
+function exitFullscreen(){
+  fsActive = false;
+  document.body.classList.remove('fs-lock');
+  var fsRoot = document.getElementById('fullscreen');
+  fsRoot.classList.remove('on');
+  document.getElementById('fs-controls').classList.remove('show');
+  clearTimeout(fsControlsTimer);
+  try {
+    if (document.exitFullscreen && document.fullscreenElement) document.exitFullscreen();
+    else if (document.webkitExitFullscreen && document.webkitFullscreenElement) document.webkitExitFullscreen();
+  } catch(e){}
+}
+
+function updateFs(){
+  if (!fsActive || !state) return;
+  var s = state.session;
+  var p = s.phases[state.index];
+  var totalDur = 0;
+  for (var i=0; i<s.phases.length; i++) totalDur += s.phases[i].dur;
+  var elapsedBefore = 0;
+  for (var j=0; j<state.index; j++) elapsedBefore += s.phases[j].dur;
+  var totalElapsed = elapsedBefore + (p.dur - state.remaining);
+  var totalRemaining = Math.max(0, totalDur - totalElapsed);
+
+  document.getElementById('fs-phase').textContent = p.name;
+  var ft = document.getElementById('fs-time');
+  ft.textContent = fmt(state.remaining);
+  ft.className = state.remaining < 60 ? 'small' : '';
+  document.getElementById('fs-sub').textContent =
+      'RESTE ' + fmtHMS(totalRemaining) + ' / ' + fmtHMS(totalDur);
+
+  var fsRoot = document.getElementById('fullscreen');
+  fsRoot.classList.remove('warn','end');
+  if (state.remaining <= 30) fsRoot.classList.add('end');
+  else if (state.remaining <= 120) fsRoot.classList.add('warn');
+
+  var bp = document.getElementById('fs-pause');
+  if (bp) bp.textContent = state.running ? 'PAUSE' : 'REPRENDRE';
+
+  updateFsBar();
+}
+
+(function bindFs(){
+  var fsRoot = document.getElementById('fullscreen');
+  fsRoot.addEventListener('click', function(e){
+    if (e.target.closest('#fs-controls')) return;
+    var c = document.getElementById('fs-controls');
+    var h = document.getElementById('fs-hint');
+    c.classList.add('show');
+    h.classList.add('hide');
+    clearTimeout(fsControlsTimer);
+    fsControlsTimer = setTimeout(function(){ c.classList.remove('show'); }, 3000);
+  });
+  document.getElementById('fs-minus').onclick = function(e){ e.stopPropagation(); adjust(-60); resetFsTimer(); };
+  document.getElementById('fs-plus').onclick  = function(e){ e.stopPropagation(); adjust(60); resetFsTimer(); };
+  document.getElementById('fs-pause').onclick = function(e){ e.stopPropagation(); togglePause(); resetFsTimer(); };
+  document.getElementById('fs-skip').onclick  = function(e){ e.stopPropagation(); advance(true); resetFsTimer(); };
+  document.getElementById('fs-quit').onclick  = function(e){ e.stopPropagation(); exitFullscreen(); };
+  function resetFsTimer(){
+    clearTimeout(fsControlsTimer);
+    fsControlsTimer = setTimeout(function(){
+      document.getElementById('fs-controls').classList.remove('show');
+    }, 3000);
+  }
+})();
+
+document.addEventListener('touchmove', function(e){
+  if (fsActive) e.preventDefault();
+}, {passive:false});
+
+/* ============================================================
+   INIT
+============================================================ */
+renderList();
+</script>
+</body>
+</html>
