@@ -472,6 +472,25 @@ body.fs-lock{overflow:hidden}
 .dialog-actions .cancel:active{background:var(--cream-3)}
 .dialog-actions .ok{background:var(--amber);color:var(--screen)}
 .dialog-actions .ok:active{background:#d94816}
+  /* ---------- BOUTON ŒIL ---------- */
+.eye-btn{
+  position:absolute;top:10px;right:10px;
+  width:40px;height:40px;
+  background:rgba(255,91,31,.08);
+  border:1px solid var(--line);
+  color:var(--amber);
+  border-radius:10px;
+  font-family:inherit;font-size:18px;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  z-index:10;
+}
+.eye-btn:active{background:rgba(255,91,31,.2)}
+.eye-btn.off{opacity:.5}
+
+/* Quand actif : consignes privées masquées */
+body.hide-consignes .consigne{display:none !important}
+body.hide-consignes .next{display:none !important}
 </style>
 </head>
 <body>
@@ -722,7 +741,24 @@ function showNav(opts){
     navActionEl.onclick = null;
   }
 }
+var HIDE_KEY = 'chronophases:hideConsignes';
+var hideConsignes = localStorage.getItem(HIDE_KEY) === '1';
 
+function applyHideConsignes(){
+  if (hideConsignes) document.body.classList.add('hide-consignes');
+  else document.body.classList.remove('hide-consignes');
+  var btn = document.getElementById('eye-btn');
+  if (btn){
+    btn.textContent = hideConsignes ? '👁‍🗨' : '👁';
+    btn.classList.toggle('off', hideConsignes);
+  }
+}
+
+function toggleHideConsignes(){
+  hideConsignes = !hideConsignes;
+  try { localStorage.setItem(HIDE_KEY, hideConsignes ? '1' : '0'); } catch(e){}
+  applyHideConsignes();
+}
 /* ==========================================================
    BOTTOM SHEET (menu ⋯)
 ========================================================== */
@@ -1222,6 +1258,7 @@ function renderRun(){
        + '</div>';
 
   html += '<div class="phase-block" id="phase-block">'
+       +   '<button class="eye-btn" id="eye-btn" title="masquer les consignes">👁</button>'
        +   '<div class="phase-name">'+esc(p.name)+'</div>'
        +   '<div class="phase-time" id="phase-time">'+fmt(state.remaining)+'</div>'
        +   '<div class="phase-remain">restant dans cette phase</div>'
@@ -1238,6 +1275,9 @@ function renderRun(){
        +  '</b></div>';
 
   screenEl.innerHTML = html;
+  var eyeBtn = document.getElementById('eye-btn');
+if (eyeBtn) eyeBtn.onclick = toggleHideConsignes;
+applyHideConsignes();
 
   setBottom(
       '<button class="btn-phys" id="b-minus">−1M</button>'
@@ -1567,7 +1607,7 @@ function updateFs(){
 document.addEventListener('touchmove', function(e){
   if (fsActive) e.preventDefault();
 }, {passive:false});
-
+applyHideConsignes();
 renderList();
 </script>
 </body>
