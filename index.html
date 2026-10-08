@@ -473,22 +473,46 @@ body.fs-lock{overflow:hidden}
 .dialog-actions .ok{background:var(--amber);color:var(--screen)}
 .dialog-actions .ok:active{background:#d94816}
   /* ---------- BOUTON ŒIL ---------- */
+/* ---------- BOUTON LED CONSIGNES ---------- */
 .eye-btn{
   position:absolute;top:10px;right:10px;
-  width:40px;height:40px;
-  background:rgba(255,91,31,.08);
-  border:1px solid var(--line);
-  color:var(--amber);
-  border-radius:10px;
-  font-family:inherit;font-size:18px;
+  display:flex;align-items:center;gap:6px;
+  padding:6px 10px 6px 8px;
+  background:linear-gradient(to bottom, #f4f2ec, #e2dfd7);
+  border:1px solid var(--cream-3);
+  border-radius:8px;
+  font-family:inherit;
+  font-size:9px;
+  font-weight:700;
+  color:var(--ink-2);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
   cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 1px 0 rgba(255,255,255,.9) inset,
+             0 -1px 0 rgba(0,0,0,.04) inset,
+             0 1px 2px rgba(0,0,0,.15);
   z-index:10;
+  min-width:52px;
 }
-.eye-btn:active{background:rgba(255,91,31,.2)}
-.eye-btn.off{opacity:.5}
+.eye-btn:active{
+  background:linear-gradient(to bottom, #e2dfd7, #d4d1c8);
+  transform:translateY(1px);
+  box-shadow:0 1px 2px rgba(0,0,0,.15) inset;
+}
+.eye-led{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--amber);
+  box-shadow:0 0 6px rgba(255,91,31,.9),
+             0 0 2px rgba(255,91,31,1);
+  flex-shrink:0;
+  transition:background .2s, box-shadow .2s;
+}
+.eye-btn.off .eye-led{
+  background:#8a8783;
+  box-shadow:inset 0 1px 1px rgba(0,0,0,.3);
+}
 
-/* Quand actif : consignes privées masquées */
+/* Masquage des consignes */
 body.hide-consignes .consigne{display:none !important}
 body.hide-consignes .next{display:none !important}
 </style>
@@ -749,15 +773,10 @@ function applyHideConsignes(){
   else document.body.classList.remove('hide-consignes');
   var btn = document.getElementById('eye-btn');
   if (btn){
-    btn.textContent = hideConsignes ? '👁‍🗨' : '👁';
+    var label = btn.querySelector('.eye-label');
+    if (label) label.textContent = hideConsignes ? 'OFF' : 'VUE';
     btn.classList.toggle('off', hideConsignes);
   }
-}
-
-function toggleHideConsignes(){
-  hideConsignes = !hideConsignes;
-  try { localStorage.setItem(HIDE_KEY, hideConsignes ? '1' : '0'); } catch(e){}
-  applyHideConsignes();
 }
 /* ==========================================================
    BOTTOM SHEET (menu ⋯)
@@ -1258,7 +1277,10 @@ function renderRun(){
        + '</div>';
 
   html += '<div class="phase-block" id="phase-block">'
-       +   '<button class="eye-btn" id="eye-btn" title="masquer les consignes">👁</button>'
+       +   '<button class="eye-btn" id="eye-btn" title="masquer les consignes">'
+       +     '<span class="eye-led"></span>'
+       +     '<span class="eye-label">VUE</span>'
+       +   '</button>'
        +   '<div class="phase-name">'+esc(p.name)+'</div>'
        +   '<div class="phase-time" id="phase-time">'+fmt(state.remaining)+'</div>'
        +   '<div class="phase-remain">restant dans cette phase</div>'
