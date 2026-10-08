@@ -698,25 +698,54 @@ function findSession(id){
   return null;
 }
 
+function showSheet(title, items){
+  var backdrop = document.getElementById('sheet-backdrop');
+  var sheet = document.getElementById('sheet');
+  var html = '<div class="sheet-handle"></div>';
+  html += '<div class="sheet-title">'+esc(title)+'</div>';
+  for (var i=0; i<items.length; i++){
+    var it = items[i];
+    var cls = 'sheet-item';
+    if (it.danger) cls += ' danger';
+    if (it.primary) cls += ' primary';
+    html += '<button class="'+cls+'" data-idx="'+i+'">'
+         +   '<span class="ico">'+it.icon+'</span>'
+         +   '<span>'+esc(it.label)+'</span>'
+         + '</button>';
+  }
+  html += '<button class="sheet-cancel" id="sheet-cancel">ANNULER</button>';
+  sheet.innerHTML = html;
+  backdrop.classList.add('on');
+
+  function close(){
+    backdrop.classList.remove('on');
+    sheet.innerHTML = '';
+  }
+
+  var buttons = sheet.querySelectorAll('[data-idx]');
+  for (var k=0; k<buttons.length; k++){
+    buttons[k].onclick = function(){
+      var idx = parseInt(this.getAttribute('data-idx'),10);
+      close();
+      setTimeout(function(){ items[idx].onClick(); }, 50);
+    };
+  }
+  document.getElementById('sheet-cancel').onclick = close;
+  backdrop.onclick = function(e){ if (e.target === backdrop) close(); };
+}
+
 function sessionMenu(id){
   var s = findSession(id);
   if (!s) return;
-  var c = prompt(
-    'SÉANCE : ' + s.title + '\n\n'
-    + '1 = MODIFIER\n'
-    + '2 = DUPLIQUER\n'
-    + '3 = RENOMMER\n'
-    + '4 = SUPPRIMER\n'
-    + '5 = EXPORTER TOUT\n'
-    + '6 = IMPORTER\n',
-    '1'
-  );
-  if (c === '1') return editSession(id);
-  if (c === '2') return duplicateSession(id);
-  if (c === '3') return renameSession(id);
-  if (c === '4') return deleteSession(id);
-  if (c === '5') return exportSessions();
-  if (c === '6') return importSessions();
+  showSheet(s.title, [
+    { icon:'▶', label:'Démarrer', primary:true, onClick:function(){ startSession(id); } },
+    { icon:'✎', label:'Modifier',  onClick:function(){ editSession(id); } },
+    { icon:'⧉', label:'Dupliquer', onClick:function(){ duplicateSession(id); } },
+    { icon:'T', label:'Renommer',  onClick:function(){ renameSession(id); } },
+    { icon:'↓', label:'Exporter tout', onClick:exportSessions },
+    { icon:'↑', label:'Importer',      onClick:importSessions },
+    { icon:'🗑', label:'Supprimer', danger:true, onClick:function(){ deleteSession(id); } }
+  ]);
 }
 
 function newSession(){
@@ -1378,4 +1407,7 @@ document.addEventListener('touchmove', function(e){
 renderList();
 </script>
 </body>
+  <div class="sheet-backdrop" id="sheet-backdrop">
+  <div class="sheet" id="sheet"></div>
+</div>
 </html>
