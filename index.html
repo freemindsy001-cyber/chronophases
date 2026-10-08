@@ -388,6 +388,53 @@ select option{background:#1a1a1a;color:#f0e9dd}
 .tip b{color:var(--amber);font-weight:600}
 .empty{text-align:center;color:rgba(255,91,31,.4);padding:30px 20px;font-size:13px}
 body.fs-lock{overflow:hidden}
+  /* ---------- DIALOG (remplace prompt) ---------- */
+.dialog-backdrop{
+  position:fixed;inset:0;z-index:6000;
+  background:rgba(0,0,0,.5);
+  display:none;align-items:center;justify-content:center;
+  padding:20px;
+}
+.dialog-backdrop.on{display:flex}
+.dialog{
+  width:100%;max-width:420px;
+  background:var(--cream);
+  border-radius:20px;padding:22px 20px 18px;
+  animation:dialogIn .2s ease-out;
+  box-shadow:0 20px 60px rgba(0,0,0,.3);
+}
+@keyframes dialogIn{
+  from{transform:scale(.92);opacity:0}
+  to{transform:scale(1);opacity:1}
+}
+.dialog-title{
+  font-size:13px;color:var(--ink-2);letter-spacing:1px;
+  text-transform:uppercase;margin:0 0 14px;
+}
+.dialog-input{
+  width:100%;font-family:inherit;font-size:16px;
+  color:var(--ink);background:#fff;
+  border:1px solid var(--cream-3);border-radius:10px;
+  padding:14px 14px;-webkit-appearance:none;appearance:none;
+  margin-bottom:16px;
+}
+.dialog-input:focus{outline:none;border-color:var(--amber)}
+.dialog-actions{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;
+}
+.dialog-actions button{
+  font-family:inherit;font-size:14px;font-weight:600;
+  padding:15px 12px;border-radius:12px;border:none;
+  cursor:pointer;text-transform:uppercase;letter-spacing:1px;
+}
+.dialog-actions .cancel{
+  background:var(--cream-2);color:var(--ink);
+}
+.dialog-actions .cancel:active{background:var(--cream-3)}
+.dialog-actions .ok{
+  background:var(--amber);color:var(--screen);
+}
+.dialog-actions .ok:active{background:#d94816}
 </style>
 </head>
 <body>
@@ -746,20 +793,63 @@ function sessionMenu(id){
     { icon:'↑', label:'Importer',      onClick:importSessions },
     { icon:'🗑', label:'Supprimer', danger:true, onClick:function(){ deleteSession(id); } }
   ]);
+  function showInputDialog(opts){
+  var backdrop = document.getElementById('dialog-backdrop');
+  var titleEl = document.getElementById('dialog-title');
+  var inputEl = document.getElementById('dialog-input');
+  var cancelEl = document.getElementById('dialog-cancel');
+  var okEl = document.getElementById('dialog-ok');
+
+  titleEl.textContent = opts.title || 'Saisir un texte';
+  inputEl.value = opts.value || '';
+  inputEl.placeholder = opts.placeholder || '';
+  backdrop.classList.add('on');
+
+  setTimeout(function(){ inputEl.focus(); inputEl.select(); }, 100);
+
+  function close(){ backdrop.classList.remove('on'); }
+
+  function validate(){
+    var v = inputEl.value.trim();
+    close();
+    if (opts.onOk) opts.onOk(v);
+  }
+
+  okEl.onclick = validate;
+  cancelEl.onclick = function(){
+    close();
+    if (opts.onCancel) opts.onCancel();
+  };
+  inputEl.onkeydown = function(e){
+    if (e.key === 'Enter'){ e.preventDefault(); validate(); }
+  };
+  backdrop.onclick = function(e){
+    if (e.target === backdrop){
+      close();
+      if (opts.onCancel) opts.onCancel();
+    }
+  };
+}
 }
 
 function newSession(){
-  var t = prompt('TITRE DE LA SÉANCE :', 'NOUVELLE SÉANCE');
-  if (!t) return;
-  var s = {
-    id: uid(), title: t.toUpperCase(), subtitle: '',
-    phases: [
-      { name:'ACCUEIL', dur:5*60, type:'info' },
-      { name:'TRAVAIL', dur:20*60, type:'work' },
-      { name:'BILAN', dur:5*60, type:'info' }
-    ]
-  };
-  sessions.push(s); saveSessions(); editSession(s.id);
+  showInputDialog({
+    title: 'NOUVELLE SÉANCE',
+    placeholder: 'Titre de la séance…',
+    value: 'NOUVELLE SÉANCE',
+    onOk: function(t){
+      if (!t) return;
+      var s = {
+        id: uid(), title: t.toUpperCase(), subtitle: '',
+        phases: [
+          { name:'ACCUEIL', dur:5*60, type:'info' },
+          { name:'TRAVAIL', dur:20*60, type:'work' },
+          { name:'BILAN', dur:5*60, type:'info' }
+        ]
+      };
+      sessions.push(s); saveSessions(); editSession(s.id);
+    }
+  });
 }
 
 function duplicateSession(id){
@@ -769,19 +859,25 @@ function duplicateSession(id){
 }
 function renameSession(id){
   var s = findSession(id); if (!s) return;
-  var t = prompt('NOUVEAU TITRE :', s.title); if (!t) return;
-  s.title = t;
-  var sub = prompt('SOUS-TITRE (facultatif) :', s.subtitle || '');
-  if (sub !== null) s.subtitle = sub;
-  saveSessions(); renderList();
-}
-function deleteSession(id){
-  var s = findSession(id); if (!s) return;
-  if (!confirm('SUPPRIMER « ' + s.title + ' » ?')) return;
-  for (var i=0; i<sessions.length; i++){
-    if (sessions[i].id === id){ sessions.splice(i,1); break; }
-  }
-  saveSessions(); renderList();
+  showInputDialog({
+    title: 'RENOMMER — TITRE',
+    placeholder: 'Titre',
+    value: s.title,
+    onOk: function(t){
+      if (!t) return;
+      s.title = t.toUpperCase();
+      showInputDialog({
+        title: 'SOUS-TITRE (facultatif)',
+        placeholder: 'ex. 8h10–9h50',
+        value: s.subtitle || '',
+        onOk: function(sub){
+          s.subtitle = sub;
+          saveSessions();
+          renderList();
+        }
+      });
+    }
+  });
 }
 function exportSessions(){
   var data = JSON.stringify(sessions, null, 2);
@@ -1406,8 +1502,19 @@ document.addEventListener('touchmove', function(e){
 
 renderList();
 </script>
-</body>
   <div class="sheet-backdrop" id="sheet-backdrop">
   <div class="sheet" id="sheet"></div>
 </div>
+  <div class="dialog-backdrop" id="dialog-backdrop">
+  <div class="dialog" id="dialog">
+    <div class="dialog-title" id="dialog-title">Titre</div>
+    <input class="dialog-input" id="dialog-input" type="text" autocomplete="off" autocorrect="off">
+    <div class="dialog-actions">
+      <button class="cancel" id="dialog-cancel">ANNULER</button>
+      <button class="ok" id="dialog-ok">VALIDER</button>
+    </div>
+  </div>
+</div>
+</body>
+  
 </html>
