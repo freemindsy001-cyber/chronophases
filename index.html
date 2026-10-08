@@ -21,7 +21,6 @@
   --ink-2:#4a4a48;
   --screen:#0a0a0a;
   --amber:#ff5b1f;
-  --amber-dim:#7a2a0e;
   --green:#7dd87d;
   --yellow:#ffcc4d;
   --red:#ff5555;
@@ -377,7 +376,7 @@ select option{background:#1a1a1a;color:#f0e9dd}
 .empty{text-align:center;color:rgba(255,91,31,.4);padding:30px 20px;font-size:13px}
 body.fs-lock{overflow:hidden}
 
-/* ---------- BOTTOM SHEET (menu ⋯) ---------- */
+/* BOTTOM SHEET */
 .sheet-backdrop{
   position:fixed;inset:0;z-index:5000;
   background:rgba(0,0,0,.5);
@@ -429,7 +428,7 @@ body.fs-lock{overflow:hidden}
 }
 .sheet-cancel:active{background:var(--cream-3)}
 
-/* ---------- DIALOG (remplace prompt) ---------- */
+/* DIALOG */
 .dialog-backdrop{
   position:fixed;inset:0;z-index:6000;
   background:rgba(0,0,0,.5);
@@ -472,8 +471,8 @@ body.fs-lock{overflow:hidden}
 .dialog-actions .cancel:active{background:var(--cream-3)}
 .dialog-actions .ok{background:var(--amber);color:var(--screen)}
 .dialog-actions .ok:active{background:#d94816}
-  /* ---------- BOUTON ŒIL ---------- */
-/* ---------- BOUTON LED CONSIGNES ---------- */
+
+/* BOUTON LED CONSIGNES */
 .eye-btn{
   position:absolute;top:10px;right:10px;
   display:flex;align-items:center;gap:6px;
@@ -511,8 +510,6 @@ body.fs-lock{overflow:hidden}
   background:#8a8783;
   box-shadow:inset 0 1px 1px rgba(0,0,0,.3);
 }
-
-/* Masquage des consignes */
 body.hide-consignes .consigne{display:none !important}
 body.hide-consignes .next{display:none !important}
 </style>
@@ -765,6 +762,10 @@ function showNav(opts){
     navActionEl.onclick = null;
   }
 }
+
+/* ==========================================================
+   BOUTON LED CONSIGNES
+========================================================== */
 var HIDE_KEY = 'chronophases:hideConsignes';
 var hideConsignes = localStorage.getItem(HIDE_KEY) === '1';
 
@@ -778,6 +779,13 @@ function applyHideConsignes(){
     btn.classList.toggle('off', hideConsignes);
   }
 }
+
+function toggleHideConsignes(){
+  hideConsignes = !hideConsignes;
+  try { localStorage.setItem(HIDE_KEY, hideConsignes ? '1' : '0'); } catch(e){}
+  applyHideConsignes();
+}
+
 /* ==========================================================
    BOTTOM SHEET (menu ⋯)
 ========================================================== */
@@ -818,7 +826,7 @@ function showSheet(title, items){
 }
 
 /* ==========================================================
-   DIALOG (remplace prompt) — définie AU NIVEAU GLOBAL
+   DIALOG (remplace prompt)
 ========================================================== */
 function showInputDialog(opts){
   var backdrop = document.getElementById('dialog-backdrop');
@@ -1297,9 +1305,10 @@ function renderRun(){
        +  '</b></div>';
 
   screenEl.innerHTML = html;
+
   var eyeBtn = document.getElementById('eye-btn');
-if (eyeBtn) eyeBtn.onclick = toggleHideConsignes;
-applyHideConsignes();
+  if (eyeBtn) eyeBtn.onclick = toggleHideConsignes;
+  applyHideConsignes();
 
   setBottom(
       '<button class="btn-phys" id="b-minus">−1M</button>'
@@ -1629,7 +1638,7 @@ function updateFs(){
 document.addEventListener('touchmove', function(e){
   if (fsActive) e.preventDefault();
 }, {passive:false});
-applyHideConsignes();
+
 renderList();
 </script>
 </body>
