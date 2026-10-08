@@ -1,18 +1,17 @@
 <!DOCTYPE html>
 <html lang="fr">
-  <link rel="icon" type="image/svg+xml" href="icon.svg">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-<link rel="apple-touch-icon" sizes="152x152" href="apple-touch-icon-152.png">
-<link rel="apple-touch-icon" sizes="120x120" href="apple-touch-icon-120.png">
-<meta name="apple-mobile-web-app-title" content="Chrono">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="ChronoPhases">
+<meta name="apple-mobile-web-app-title" content="Chrono">
 <meta name="theme-color" content="#e8e6e0">
 <title>ChronoPhases</title>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="152x152" href="apple-touch-icon-152.png">
+<link rel="apple-touch-icon" sizes="120x120" href="apple-touch-icon-120.png">
 <style>
 :root{
   --cream:#e8e6e0;
@@ -23,7 +22,6 @@
   --screen:#0a0a0a;
   --amber:#ff5b1f;
   --amber-dim:#7a2a0e;
-  --amber-ghost:rgba(255,91,31,.15);
   --green:#7dd87d;
   --yellow:#ffcc4d;
   --red:#ff5555;
@@ -32,8 +30,7 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{
   margin:0;height:100%;
-  background:var(--cream);
-  color:var(--ink);
+  background:var(--cream);color:var(--ink);
   font-family:"JetBrains Mono","IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
   padding:env(safe-area-inset-top) env(safe-area-inset-right)
           env(safe-area-inset-bottom) env(safe-area-inset-left);
@@ -121,16 +118,11 @@ html,body{
   content:"";position:absolute;inset:0;pointer-events:none;border-radius:14px;
   box-shadow:inset 0 0 60px rgba(0,0,0,.6);
 }
-.screen h1,.screen h2{
+.screen h1{
   margin:0 0 10px;font-size:14px;font-weight:600;
   letter-spacing:1px;text-transform:uppercase;color:var(--amber);
 }
 .screen h1::before{content:"// "}
-.screen .muted{color:rgba(255,91,31,.55)}
-.screen .white{color:#f0e9dd}
-.screen .green{color:var(--green)}
-.screen .yellow{color:var(--yellow)}
-.screen .red{color:var(--red)}
 
 .session{
   display:block;padding:14px 14px 14px 0;
@@ -245,10 +237,6 @@ html,body{
 }
 .btn-phys.primary:active{background:linear-gradient(to bottom, var(--amber), #d94816)}
 .btn-phys.danger{color:#b8350f}
-.btn-phys.side{
-  background:linear-gradient(to bottom, #f4f2ec, #e2dfd7);
-  width:52px;min-width:52px;padding:16px 8px;font-size:18px;
-}
 .btn-phys.full{grid-column:span 3}
 
 .screen button.inline{
@@ -388,7 +376,60 @@ select option{background:#1a1a1a;color:#f0e9dd}
 .tip b{color:var(--amber);font-weight:600}
 .empty{text-align:center;color:rgba(255,91,31,.4);padding:30px 20px;font-size:13px}
 body.fs-lock{overflow:hidden}
-  /* ---------- DIALOG (remplace prompt) ---------- */
+
+/* ---------- BOTTOM SHEET (menu ⋯) ---------- */
+.sheet-backdrop{
+  position:fixed;inset:0;z-index:5000;
+  background:rgba(0,0,0,.5);
+  display:none;align-items:flex-end;justify-content:center;
+}
+.sheet-backdrop.on{display:flex}
+.sheet{
+  width:100%;max-width:520px;
+  background:var(--cream);
+  border-top-left-radius:20px;border-top-right-radius:20px;
+  padding:12px 16px calc(env(safe-area-inset-bottom) + 20px);
+  animation:sheetUp .25s ease-out;
+  max-height:80vh;overflow-y:auto;
+}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sheet-handle{
+  width:44px;height:5px;background:var(--cream-3);
+  border-radius:3px;margin:4px auto 16px;
+}
+.sheet-title{
+  font-size:12px;color:var(--ink-2);letter-spacing:1px;
+  text-transform:uppercase;margin:0 4px 12px;
+  padding-bottom:14px;border-bottom:1px solid var(--cream-3);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.sheet-item{
+  display:flex;align-items:center;gap:14px;
+  padding:14px 12px;border-radius:12px;
+  font-family:inherit;font-size:15px;color:var(--ink);
+  background:transparent;border:none;width:100%;text-align:left;
+  cursor:pointer;letter-spacing:.3px;
+}
+.sheet-item:active{background:rgba(0,0,0,.06)}
+.sheet-item .ico{
+  width:38px;height:38px;border-radius:10px;
+  background:var(--cream-2);color:var(--ink-2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:17px;flex-shrink:0;
+}
+.sheet-item.primary .ico{background:var(--amber);color:var(--screen)}
+.sheet-item.danger{color:#b8350f}
+.sheet-item.danger .ico{background:#f0d0c5;color:#b8350f}
+.sheet-cancel{
+  margin-top:10px;width:100%;padding:16px;
+  background:var(--cream-2);border:none;border-radius:12px;
+  font-family:inherit;font-size:14px;font-weight:600;
+  color:var(--ink);cursor:pointer;letter-spacing:1px;
+  text-transform:uppercase;
+}
+.sheet-cancel:active{background:var(--cream-3)}
+
+/* ---------- DIALOG (remplace prompt) ---------- */
 .dialog-backdrop{
   position:fixed;inset:0;z-index:6000;
   background:rgba(0,0,0,.5);
@@ -427,13 +468,9 @@ body.fs-lock{overflow:hidden}
   padding:15px 12px;border-radius:12px;border:none;
   cursor:pointer;text-transform:uppercase;letter-spacing:1px;
 }
-.dialog-actions .cancel{
-  background:var(--cream-2);color:var(--ink);
-}
+.dialog-actions .cancel{background:var(--cream-2);color:var(--ink)}
 .dialog-actions .cancel:active{background:var(--cream-3)}
-.dialog-actions .ok{
-  background:var(--amber);color:var(--screen);
-}
+.dialog-actions .ok{background:var(--amber);color:var(--screen)}
 .dialog-actions .ok:active{background:#d94816}
 </style>
 </head>
@@ -484,6 +521,21 @@ body.fs-lock{overflow:hidden}
     <button id="fs-plus">+1m</button>
     <button id="fs-skip">NEXT</button>
     <button class="quit" id="fs-quit">■ QUITTER LE PLEIN ÉCRAN</button>
+  </div>
+</div>
+
+<div class="sheet-backdrop" id="sheet-backdrop">
+  <div class="sheet" id="sheet"></div>
+</div>
+
+<div class="dialog-backdrop" id="dialog-backdrop">
+  <div class="dialog" id="dialog">
+    <div class="dialog-title" id="dialog-title">Titre</div>
+    <input class="dialog-input" id="dialog-input" type="text" autocomplete="off" autocorrect="off">
+    <div class="dialog-actions">
+      <button class="cancel" id="dialog-cancel">ANNULER</button>
+      <button class="ok" id="dialog-ok">VALIDER</button>
+    </div>
   </div>
 </div>
 
@@ -672,6 +724,86 @@ function showNav(opts){
 }
 
 /* ==========================================================
+   BOTTOM SHEET (menu ⋯)
+========================================================== */
+function showSheet(title, items){
+  var backdrop = document.getElementById('sheet-backdrop');
+  var sheet = document.getElementById('sheet');
+  var html = '<div class="sheet-handle"></div>';
+  html += '<div class="sheet-title">'+esc(title)+'</div>';
+  for (var i=0; i<items.length; i++){
+    var it = items[i];
+    var cls = 'sheet-item';
+    if (it.danger) cls += ' danger';
+    if (it.primary) cls += ' primary';
+    html += '<button class="'+cls+'" data-idx="'+i+'">'
+         +   '<span class="ico">'+it.icon+'</span>'
+         +   '<span>'+esc(it.label)+'</span>'
+         + '</button>';
+  }
+  html += '<button class="sheet-cancel" id="sheet-cancel">ANNULER</button>';
+  sheet.innerHTML = html;
+  backdrop.classList.add('on');
+
+  function close(){
+    backdrop.classList.remove('on');
+    sheet.innerHTML = '';
+  }
+
+  var buttons = sheet.querySelectorAll('[data-idx]');
+  for (var k=0; k<buttons.length; k++){
+    buttons[k].onclick = function(){
+      var idx = parseInt(this.getAttribute('data-idx'),10);
+      close();
+      setTimeout(function(){ items[idx].onClick(); }, 50);
+    };
+  }
+  document.getElementById('sheet-cancel').onclick = close;
+  backdrop.onclick = function(e){ if (e.target === backdrop) close(); };
+}
+
+/* ==========================================================
+   DIALOG (remplace prompt) — définie AU NIVEAU GLOBAL
+========================================================== */
+function showInputDialog(opts){
+  var backdrop = document.getElementById('dialog-backdrop');
+  var titleEl = document.getElementById('dialog-title');
+  var inputEl = document.getElementById('dialog-input');
+  var cancelEl = document.getElementById('dialog-cancel');
+  var okEl = document.getElementById('dialog-ok');
+
+  titleEl.textContent = opts.title || 'Saisir un texte';
+  inputEl.value = opts.value || '';
+  inputEl.placeholder = opts.placeholder || '';
+  backdrop.classList.add('on');
+
+  setTimeout(function(){ inputEl.focus(); inputEl.select(); }, 100);
+
+  function close(){ backdrop.classList.remove('on'); }
+
+  function validate(){
+    var v = inputEl.value.trim();
+    close();
+    if (opts.onOk) opts.onOk(v);
+  }
+
+  okEl.onclick = validate;
+  cancelEl.onclick = function(){
+    close();
+    if (opts.onCancel) opts.onCancel();
+  };
+  inputEl.onkeydown = function(e){
+    if (e.key === 'Enter'){ e.preventDefault(); validate(); }
+  };
+  backdrop.onclick = function(e){
+    if (e.target === backdrop){
+      close();
+      if (opts.onCancel) opts.onCancel();
+    }
+  };
+}
+
+/* ==========================================================
    LISTE DES SÉANCES
 ========================================================== */
 function renderList(){
@@ -745,42 +877,6 @@ function findSession(id){
   return null;
 }
 
-function showSheet(title, items){
-  var backdrop = document.getElementById('sheet-backdrop');
-  var sheet = document.getElementById('sheet');
-  var html = '<div class="sheet-handle"></div>';
-  html += '<div class="sheet-title">'+esc(title)+'</div>';
-  for (var i=0; i<items.length; i++){
-    var it = items[i];
-    var cls = 'sheet-item';
-    if (it.danger) cls += ' danger';
-    if (it.primary) cls += ' primary';
-    html += '<button class="'+cls+'" data-idx="'+i+'">'
-         +   '<span class="ico">'+it.icon+'</span>'
-         +   '<span>'+esc(it.label)+'</span>'
-         + '</button>';
-  }
-  html += '<button class="sheet-cancel" id="sheet-cancel">ANNULER</button>';
-  sheet.innerHTML = html;
-  backdrop.classList.add('on');
-
-  function close(){
-    backdrop.classList.remove('on');
-    sheet.innerHTML = '';
-  }
-
-  var buttons = sheet.querySelectorAll('[data-idx]');
-  for (var k=0; k<buttons.length; k++){
-    buttons[k].onclick = function(){
-      var idx = parseInt(this.getAttribute('data-idx'),10);
-      close();
-      setTimeout(function(){ items[idx].onClick(); }, 50);
-    };
-  }
-  document.getElementById('sheet-cancel').onclick = close;
-  backdrop.onclick = function(e){ if (e.target === backdrop) close(); };
-}
-
 function sessionMenu(id){
   var s = findSession(id);
   if (!s) return;
@@ -793,43 +889,6 @@ function sessionMenu(id){
     { icon:'↑', label:'Importer',      onClick:importSessions },
     { icon:'🗑', label:'Supprimer', danger:true, onClick:function(){ deleteSession(id); } }
   ]);
-  function showInputDialog(opts){
-  var backdrop = document.getElementById('dialog-backdrop');
-  var titleEl = document.getElementById('dialog-title');
-  var inputEl = document.getElementById('dialog-input');
-  var cancelEl = document.getElementById('dialog-cancel');
-  var okEl = document.getElementById('dialog-ok');
-
-  titleEl.textContent = opts.title || 'Saisir un texte';
-  inputEl.value = opts.value || '';
-  inputEl.placeholder = opts.placeholder || '';
-  backdrop.classList.add('on');
-
-  setTimeout(function(){ inputEl.focus(); inputEl.select(); }, 100);
-
-  function close(){ backdrop.classList.remove('on'); }
-
-  function validate(){
-    var v = inputEl.value.trim();
-    close();
-    if (opts.onOk) opts.onOk(v);
-  }
-
-  okEl.onclick = validate;
-  cancelEl.onclick = function(){
-    close();
-    if (opts.onCancel) opts.onCancel();
-  };
-  inputEl.onkeydown = function(e){
-    if (e.key === 'Enter'){ e.preventDefault(); validate(); }
-  };
-  backdrop.onclick = function(e){
-    if (e.target === backdrop){
-      close();
-      if (opts.onCancel) opts.onCancel();
-    }
-  };
-}
 }
 
 function newSession(){
@@ -857,6 +916,7 @@ function duplicateSession(id){
   var copy = clone(s); copy.id = uid(); copy.title = s.title + ' (COPIE)';
   sessions.push(copy); saveSessions(); renderList();
 }
+
 function renameSession(id){
   var s = findSession(id); if (!s) return;
   showInputDialog({
@@ -879,6 +939,16 @@ function renameSession(id){
     }
   });
 }
+
+function deleteSession(id){
+  var s = findSession(id); if (!s) return;
+  if (!confirm('SUPPRIMER « ' + s.title + ' » ?')) return;
+  for (var i=0; i<sessions.length; i++){
+    if (sessions[i].id === id){ sessions.splice(i,1); break; }
+  }
+  saveSessions(); renderList();
+}
+
 function exportSessions(){
   var data = JSON.stringify(sessions, null, 2);
   var blob = new Blob([data], {type:'application/json'});
@@ -889,6 +959,7 @@ function exportSessions(){
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
 }
+
 function importSessions(){
   var input = document.createElement('input');
   input.type = 'file'; input.accept = 'application/json,.json';
@@ -925,8 +996,7 @@ function editSession(id){
 
   setTop('EDIT', '// ' + s.title, 'EDITING');
   showNav({
-    label: 'Séances',
-    title: 'Éditer la séance',
+    label: 'Séances', title: 'Éditer la séance',
     onBack: function(){ saveSessions(); renderList(); }
   });
 
@@ -1025,8 +1095,7 @@ function editPhase(index){
 
   setTop('EDIT PHASE', '// ' + p.name, 'EDITING');
   showNav({
-    label: 'Séance',
-    title: 'Phase ' + (index+1),
+    label: 'Séance', title: 'Phase ' + (index+1),
     onBack: function(){ saveSessions(); editSession(editingId); }
   });
 
@@ -1377,8 +1446,7 @@ function finishSession(){
 
   setTop('TERMINÉ', '// ' + s.title, 'DONE');
   showNav({
-    label: 'Séances',
-    title: 'Terminé',
+    label: 'Séances', title: 'Terminé',
     onBack: function(){ state = null; renderList(); }
   });
 
@@ -1502,19 +1570,5 @@ document.addEventListener('touchmove', function(e){
 
 renderList();
 </script>
-  <div class="sheet-backdrop" id="sheet-backdrop">
-  <div class="sheet" id="sheet"></div>
-</div>
-  <div class="dialog-backdrop" id="dialog-backdrop">
-  <div class="dialog" id="dialog">
-    <div class="dialog-title" id="dialog-title">Titre</div>
-    <input class="dialog-input" id="dialog-input" type="text" autocomplete="off" autocorrect="off">
-    <div class="dialog-actions">
-      <button class="cancel" id="dialog-cancel">ANNULER</button>
-      <button class="ok" id="dialog-ok">VALIDER</button>
-    </div>
-  </div>
-</div>
 </body>
-  
 </html>
