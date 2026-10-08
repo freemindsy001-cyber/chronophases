@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Coquille crème -->
+  <rect width="512" height="512" rx="112" fill="#e8e6e0"/>
+
+  <!-- Liseré -->
+  <rect x="24" y="24" width="464" height="464" rx="94" fill="none" stroke="#c9c5bc" stroke-width="3"/>
+
+  <!-- Écran noir -->
+  <rect x="70" y="90" width="372" height="240" rx="28" fill="#0a0a0a"/>
+  <rect x="70" y="90" width="372" height="240" rx="28" fill="none" stroke="#c9c5bc" stroke-width="4"/>
+
+  <!-- Scanlines -->
+  <g opacity="0.22">
+    <line x1="80" y1="120" x2="432" y2="120" stroke="#ff5b1f" stroke-width="1"/>
+    <line x1="80" y1="132" x2="432" y2="132" stroke="#ff5b1f" stroke-width="1"/>
+    <line x1="80" y1="144" x2="432" y2="144" stroke="#ff5b1f" stroke-width="1"/>
+    <line x1="80" y1="156" x2="432" y2="156" stroke="#ff5b1f" stroke-width="1"/>
+    <line x1="80" y1="168" x2="432" y2="168" stroke="#ff5b1f" stroke-width="1"/>
+    <line x1="80" y1="180" x2="432" y2="180" stroke="#ff5b1f" stroke-width="1"/>
+    <line x1="80" y1="192" x2="432" y2="192" stroke="#ff5b1f" stroke-width="1"/>
+    <line x1="80" y1="204" x2="432" y2="204" stroke="#ff5b1f" stroke-width="1"/>
+    <line x1="80" y1="216" x2="432" y2="216" stroke="#ff5b1f" stroke-width="1"/>
+    <line x1="80" y1="228" x2="432" y2="228" stroke="#ff5b1f" stroke-width="1"/>
+    <line x1="80" y1="240" x2="432" y2="240" stroke="#ff5b1f" stroke-width="1"/>
+    <line x1="80" y1="252" x2="432" y2="252" stroke="#ff5b1f" stroke-width="1"/>
+    <line x1="80" y1="264" x2="432" y2="264" stroke="#ff5b1f" stroke-width="1"/>
+    <line x1="80" y1="276" x2="432" y2="276" stroke="#ff5b1f" stroke-width="1"/>
+    <line x1="80" y1="288" x2="432" y2="288" stroke="#ff5b1f" stroke-width="1"/>
+    <line x1="80" y1="300" x2="432" y2="300" stroke="#ff5b1f" stroke-width="1"/>
+  </g>
+
+  <!-- LED orange -->
+  <circle cx="410" cy="356" r="12" fill="#ff5b1f"/>
+  <circle cx="410" cy="356" r="12" fill="#ff5b1f" opacity="0.35"/>
+  <circle cx="410" cy="356" r="6" fill="#ff7a3d"/>
+
+  <!-- Barre de progression colorée -->
+  <rect x="70" y="342" width="372" height="10" rx="5" fill="#33363f"/>
+  <rect x="70" y="342" width="180" height="10" rx="5" fill="#ff5b1f"/>
+  <rect x="250" y="342" width="80" height="10" rx="5" fill="#7dd87d"/>
+  <rect x="330" y="342" width="112" height="10" rx="5" fill="#ffcc4d"/>
+
+  <!-- Temps "9:41" stylisé en orange -->
+  <text x="256" y="248"
+        font-family="SF Mono, Menlo, Consolas, monospace"
+        font-size="148" font-weight="200"
+        text-anchor="middle"
+        fill="#ff5b1f"
+        letter-spacing="-6">9:41</text>
+
+  <!-- Boutons physiques en bas -->
+  <rect x="120" y="392" width="80" height="60" rx="12" fill="#f4f2ec" stroke="#c9c5bc" stroke-width="2"/>
+  <rect x="216" y="392" width="80" height="60" rx="12" fill="#ff5b1f"/>
+  <rect x="312" y="392" width="80" height="60" rx="12" fill="#f4f2ec" stroke="#c9c5bc" stroke-width="2"/>
+</svg>
